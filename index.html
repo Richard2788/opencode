@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Espetos Aero — Totem de Venda</title>
+<meta name="description" content="Totem de autoatendimento para venda de espetos na brasa. PWA offline.">
+<meta name="theme-color" content="#0d6ec9">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Espetos Aero">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ================= CENÁRIO AERO ================= -->
+<div class="scene" aria-hidden="true">
+  <div class="sky"></div>
+  <div class="sun"></div>
+  <div class="flare"></div>
+  <div class="clouds"></div>
+  <div class="droplets"></div>
+  <div class="bubbles" id="bubbles"></div>
+  <div class="hills"></div>
+  <div class="water"></div>
+</div>
+
+<div class="sparkle" aria-hidden="true"></div>
+
+<!-- ================= TOTEM ================= -->
+<main class="totem" id="totem">
+
+  <header class="glass brand">
+    <div class="logo" aria-hidden="true">
+      <span class="logo-flame"></span>
+      <span class="logo-skew">🍢</span>
+    </div>
+    <div class="brand-text">
+      <h1>ESPETOS <em>AERO</em></h1>
+      <p>Na brasa desde 2026 · Autoatendimento</p>
+    </div>
+    <div class="brand-tools">
+      <button class="tool" id="btn-sound" type="button" aria-pressed="true" title="Som">
+        <span id="sound-icon">🔊</span>
+      </button>
+      <button class="tool" id="btn-full" type="button" title="Modo totem (tela cheia)">
+        <span>⛶</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="screens">
+
+    <!-- ============ HOME ============ -->
+    <section class="screen is-active" id="screen-home" aria-label="Início">
+      <div class="hero glass">
+        <h2>Escolha seu espeto</h2>
+        <p>Carne fresca, brasa de carvalho e entrega em minutos.</p>
+        <button class="cta cta-huge" id="btn-start" type="button">
+          <span class="cta-icon">🔥</span>
+          <span>TOQUE PARA COMEÇAR</span>
+        </button>
+        <div class="promos" id="promos" aria-live="off"></div>
+      </div>
+      <div class="hero-facts">
+        <div class="fact glass"><b>8–12</b><span>minutos</span></div>
+        <div class="fact glass"><b>12</b><span>espetos</span></div>
+        <div class="fact glass"><b>5%</b><span>off no Pix</span></div>
+      </div>
+    </section>
+
+    <!-- ============ CATÁLOGO ============ -->
+    <section class="screen" id="screen-catalog" aria-label="Cardápio">
+      <div class="filters" id="filters" role="tablist"></div>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <!-- ============ CARRINHO ============ -->
+    <section class="screen" id="screen-cart" aria-label="Seu pedido">
+      <div class="panel glass">
+        <div class="panel-head">
+          <h2>Seu pedido 🧺</h2>
+          <button class="tool ghost" id="btn-clear" type="button" title="Esvaziar">🗑</button>
+        </div>
+        <ul class="cart-list" id="cart-list"></ul>
+        <div class="totals">
+          <div class="row"><span>Subtotal</span><b id="t-sub">R$ 0,00</b></div>
+          <div class="row discount" id="row-pix-off" hidden><span>Desconto Pix (5%)</span><b id="t-off">− R$ 0,00</b></div>
+          <div class="row total"><span>Total</span><b id="t-total">R$ 0,00</b></div>
+        </div>
+        <button class="cta" id="btn-keep" type="button">➕ Adicionar mais espetos</button>
+      </div>
+    </section>
+
+    <!-- ============ PAGAMENTO ============ -->
+    <section class="screen" id="screen-pay" aria-label="Pagamento">
+      <h2 class="pay-title">Como deseja pagar?</h2>
+      <div class="pay-methods">
+        <button class="method" data-pay="pix" type="button">
+          <span class="method-icon">💠</span>
+          <span class="method-name">Pix</span>
+          <span class="method-sub">5% de desconto</span>
+        </button>
+        <button class="method" data-pay="card" type="button">
+          <span class="method-icon">💳</span>
+          <span class="method-name">Cartão</span>
+          <span class="method-sub">Débito ou crédito</span>
+        </button>
+        <button class="method" data-pay="cash" type="button">
+          <span class="method-icon">💵</span>
+          <span class="method-name">Dinheiro</span>
+          <span class="method-sub">Pague no balcão</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============ PIX ============ -->
+    <section class="screen" id="screen-pix" aria-label="Pague com Pix">
+      <div class="panel glass">
+        <h2>Escaneie o QR Code</h2>
+        <div class="qr-wrap">
+          <canvas id="qr" width="240" height="240" aria-label="QR Code Pix (demonstração)"></canvas>
+          <div class="qr-sheen"></div>
+        </div>
+        <div class="pix-amount"><small>Total com desconto</small><b id="pix-total">R$ 0,00</b></div>
+        <div class="countdown">Expira em <b id="pix-timer">05:00</b></div>
+        <div class="pix-wait"><span class="dots"></span> Aguardando pagamento…</div>
+        <button class="cta ghost" id="btn-pix-cancel" type="button">Cancelar</button>
+      </div>
+    </section>
+
+    <!-- ============ PROCESSANDO ============ -->
+    <section class="screen" id="screen-processing" aria-label="Processando">
+      <div class="panel glass center">
+        <div class="spinner"></div>
+        <h2>Autorizando pagamento…</h2>
+        <p id="proc-hint">Confirme no cartão</p>
+      </div>
+    </section>
+
+    <!-- ============ CONCLUÍDO ============ -->
+    <section class="screen" id="screen-done" aria-label="Pedido concluído">
+      <div class="panel glass center">
+        <div class="ticket">
+          <div class="ticket-top">🎟️ Pedido</div>
+          <div class="order-no" id="order-no">A-001</div>
+          <ul class="ticket-items" id="ticket-items"></ul>
+          <div class="ticket-row"><span>Pago</span><b id="ticket-paid">R$ 0,00</b></div>
+          <div class="ticket-row"><span>Forma</span><b id="ticket-method">Pix</b></div>
+          <div class="ticket-tear"></div>
+          <div class="eta">
+            <b id="eta-min">8</b><span>min</span>
+            <small>Retire no balcão quando o LED ficar verde</small>
+          </div>
+        </div>
+        <div class="progress"><i id="eta-bar"></i></div>
+        <button class="cta" id="btn-again" type="button">Novo pedido</button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ================= BARRA INFERIOR ================= -->
+  <footer class="glass bar" id="bar">
+    <div class="bar-info">
+      <span class="bar-count" id="bar-count">0 itens</span>
+      <b class="bar-total" id="bar-total">R$ 0,00</b>
+    </div>
+    <button class="cta cta-huge" id="btn-checkout" type="button" disabled>
+      <span>IR PARA PAGAMENTO</span><span class="cta-arrow">➜</span>
+    </button>
+  </footer>
+
+  <p class="hint" id="hint" aria-live="polite">Volte ao início em <b>45</b>s</p>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

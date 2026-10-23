@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0" stop-color="#0b6fcd"/>
+      <stop offset="0.62" stop-color="#8ce6ff"/>
+      <stop offset="1" stop-color="#5ec033"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.86" cy="0.06" r="0.62">
+      <stop offset="0" stop-color="#ffffeb"/>
+      <stop offset="0.35" stop-color="#fff8b0" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#fff8b0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.05"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="118" fill="url(#sky)"/>
+  <rect width="512" height="512" rx="118" fill="url(#sun)"/>
+  <rect x="14" y="14" width="484" height="484" rx="104" fill="url(#glass)"/>
+  <rect x="14" y="14" width="484" height="484" rx="104" fill="none" stroke="#ffffff" stroke-opacity="0.85" stroke-width="12"/>
+  <g transform="rotate(-45 256 256)">
+    <rect x="150" y="246" width="230" height="20" rx="10" fill="#78481e"/>
+    <circle cx="392" cy="256" r="16" fill="#96602c"/>
+    <rect x="152" y="206" width="72" height="100" rx="30" fill="#ff962e" stroke="#b05214" stroke-width="6"/>
+    <rect x="216" y="206" width="72" height="100" rx="30" fill="#ec582a" stroke="#96270f" stroke-width="6"/>
+    <rect x="280" y="206" width="72" height="100" rx="30" fill="#ffc44a" stroke="#b0800f" stroke-width="6"/>
+    <rect x="166" y="214" width="26" height="34" rx="13" fill="#ffffff" opacity="0.75"/>
+    <rect x="230" y="214" width="26" height="34" rx="13" fill="#ffffff" opacity="0.65"/>
+    <rect x="294" y="214" width="26" height="34" rx="13" fill="#ffffff" opacity="0.7"/>
+  </g>
+</svg>

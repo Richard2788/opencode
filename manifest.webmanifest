@@ -1,0 +1,26 @@
+{
+  "id": "espetos-aero",
+  "name": "Espetos Aero — Totem de Venda",
+  "short_name": "Espetos Aero",
+  "description": "Totem de autoatendimento para venda de espetos na brasa. Funciona offline.",
+  "lang": "pt-BR",
+  "start_url": "./index.html?source=pwa",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#0d6ec9",
+  "theme_color": "#0d6ec9",
+  "categories": ["food", "shopping", "business"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "icons/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Ver cardápio", "url": "./index.html#cardapio" },
+    { "name": "Novo pedido", "url": "./index.html#novo" }
+  ]
+}
