@@ -1,0 +1,346 @@
+/* ============================================================
+   Snuffly's Carnival — style.css
+   Mobile First · Tema Carnaval · Vermelho / Amarelo / Branco
+   ============================================================ */
+
+:root {
+  --red: #e53935;
+  --red-dark: #b71c1c;
+  --red-deep: #7f1010;
+  --yellow: #ffd600;
+  --yellow-dark: #f2a900;
+  --white: #ffffff;
+  --cream: #fff8f0;
+  --ink: #2a1414;
+  --muted: #7a5a55;
+  --radius: 16px;
+  --shadow: 0 6px 18px rgba(127, 16, 16, 0.15);
+  --font: "Trebuchet MS", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  background: var(--cream);
+  color: var(--ink);
+  line-height: 1.55;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  /* confete sutil na base */
+  background-image:
+    radial-gradient(circle at 10% 90%, rgba(255, 214, 0, 0.14) 0 12px, transparent 13px),
+    radial-gradient(circle at 85% 92%, rgba(229, 57, 53, 0.12) 0 10px, transparent 11px),
+    radial-gradient(circle at 45% 97%, rgba(255, 214, 0, 0.10) 0 8px, transparent 9px);
+}
+
+img { max-width: 100%; display: block; }
+
+/* ---------- Topbar ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  padding-top: calc(10px + env(safe-area-inset-top));
+  background: linear-gradient(90deg, var(--red-deep), var(--red));
+  color: var(--white);
+  box-shadow: var(--shadow);
+}
+
+.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--white); min-width: 0; }
+.brand-logo { width: 38px; height: 38px; border-radius: 50%; background: var(--white); flex: none; }
+.brand-name { font-size: 1.05rem; letter-spacing: 0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-name b { color: var(--yellow); }
+
+.menu-btn {
+  margin-left: auto;
+  background: var(--yellow);
+  border: none;
+  border-radius: 10px;
+  color: var(--red-deep);
+  font-size: 1.25rem;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  flex: none;
+}
+
+.nav {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 10px;
+  flex-direction: column;
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  min-width: 200px;
+}
+.nav.open { display: flex; }
+.nav a {
+  padding: 14px 18px;
+  color: var(--red-deep);
+  text-decoration: none;
+  font-weight: bold;
+  border-bottom: 2px solid rgba(229, 57, 53, 0.12);
+}
+.nav a.active, .nav a:hover { background: var(--yellow); color: var(--ink); }
+
+/* ---------- Hero ---------- */
+main { flex: 1; }
+
+.hero {
+  text-align: center;
+  padding: 32px 20px 40px;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 214, 0, 0.25) 0 6px, transparent 7px),
+    radial-gradient(circle at 80% 15%, rgba(255, 255, 255, 0.3) 0 5px, transparent 6px),
+    radial-gradient(circle at 60% 85%, rgba(255, 214, 0, 0.2) 0 8px, transparent 9px),
+    linear-gradient(160deg, var(--red-deep), var(--red) 70%, var(--red-dark));
+  color: var(--white);
+}
+.hero-sm { padding: 36px 20px; }
+
+.hero-logo {
+  width: min(240px, 60vw);
+  margin: 0 auto 12px;
+  border-radius: 24px;
+  background: var(--white);
+  padding: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.hero h1 { font-size: clamp(1.6rem, 7vw, 2.6rem); line-height: 1.2; margin-bottom: 10px; }
+.hl-yellow { color: var(--yellow); }
+.hl-red { color: var(--red); background: var(--white); padding: 0 8px; border-radius: 8px; }
+
+.lead { max-width: 34rem; margin: 0 auto; opacity: 0.95; font-size: 1.05rem; }
+
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 18px; }
+
+.visit-counter { margin-top: 14px; font-size: 0.85rem; opacity: 0.85; }
+
+/* ---------- Botões ---------- */
+.btn {
+  display: inline-block;
+  padding: 13px 22px;
+  border-radius: 999px;
+  font-weight: bold;
+  font-size: 1rem;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  min-height: 48px; /* alvo de toque */
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn:active { transform: scale(0.96); }
+.btn-red { background: var(--red); color: var(--white); box-shadow: 0 4px 14px rgba(229, 57, 53, 0.45); }
+.btn-yellow { background: var(--yellow); color: var(--red-deep); box-shadow: 0 4px 14px rgba(255, 214, 0, 0.4); }
+.btn-outline { background: transparent; color: var(--white); border: 2px solid var(--yellow); }
+
+/* ---------- Seções ---------- */
+.section { padding: 36px 16px; max-width: 1080px; margin: 0 auto; }
+.section-alt { background: var(--white); border-top: 4px solid var(--yellow); border-bottom: 4px solid var(--yellow); max-width: none; }
+.section-alt > * { max-width: 1080px; margin-left: auto; margin-right: auto; }
+
+.section-title {
+  text-align: center;
+  font-size: 1.5rem;
+  color: var(--red-deep);
+  margin-bottom: 20px;
+  position: relative;
+}
+.section-title::after {
+  content: "";
+  display: block;
+  width: 64px; height: 5px;
+  margin: 8px auto 0;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--red), var(--yellow), var(--white));
+}
+
+.notice { text-align: center; color: var(--muted); padding: 16px; }
+
+/* ---------- Grid ---------- */
+.grid { display: grid; gap: 16px; }
+.grid-2 { grid-template-columns: 1fr; }
+.grid-3 { grid-template-columns: 1fr; }
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border: 2px solid rgba(255, 214, 0, 0.35);
+}
+.card h2, .card h3 { color: var(--red-deep); margin-bottom: 8px; }
+.card-icon { font-size: 2rem; display: block; margin-bottom: 6px; }
+
+.card.skeleton {
+  text-align: center;
+  color: var(--muted);
+  border-style: dashed;
+  padding: 36px 20px;
+}
+
+/* ---------- Game cards ---------- */
+.game-card {
+  position: relative;
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 3px solid var(--red);
+  box-shadow: var(--shadow);
+  padding: 22px 18px 54px;
+}
+.game-emoji {
+  width: 64px; height: 64px;
+  display: grid; place-items: center;
+  font-size: 2rem;
+  background: var(--yellow);
+  border-radius: 50%;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 10px rgba(255, 214, 0, 0.5);
+}
+.game-card h2 { color: var(--red-deep); margin-bottom: 8px; }
+.game-skill { color: var(--muted); font-size: 0.9rem; margin-top: 8px; }
+
+.badge-soon {
+  position: absolute;
+  left: 18px; bottom: 16px;
+  background: var(--red);
+  color: var(--white);
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+/* ---------- Prêmios ---------- */
+.prize-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 2px solid rgba(229, 57, 53, 0.25);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.prize-art {
+  aspect-ratio: 4 / 3;
+  display: grid;
+  place-items: center;
+  font-size: 3.4rem;
+  background: linear-gradient(150deg, var(--yellow) 0%, #ffe566 55%, var(--white) 100%);
+  border-bottom: 4px solid var(--red);
+}
+.prize-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.prize-type {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: bold;
+  color: var(--white);
+  background: var(--red);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.prize-body h3 { color: var(--red-deep); }
+.prize-body p { font-size: 0.92rem; color: var(--muted); flex: 1; }
+.prize-rarity { font-weight: bold; font-size: 0.85rem; }
+.rarity-comum { color: #6d4c41; }
+.rarity-raro { color: var(--yellow-dark); }
+.rarity-lendário { color: var(--red); }
+
+/* ---------- CTA band ---------- */
+.cta-band {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(90deg, var(--yellow), #ffe566);
+  color: var(--red-deep);
+  border-top: 6px solid var(--red);
+}
+.cta-band h2 { font-size: 1.4rem; margin-bottom: 6px; }
+.cta-band .btn { margin-top: 14px; }
+
+/* ---------- Formulário ---------- */
+.contact-form { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+.contact-form label { font-weight: bold; font-size: 0.9rem; color: var(--red-deep); }
+.contact-form input, .contact-form textarea {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 13px 14px;
+  border: 2px solid rgba(229, 57, 53, 0.35);
+  border-radius: 12px;
+  background: var(--white);
+  min-height: 48px;
+}
+.contact-form input:focus, .contact-form textarea:focus {
+  outline: none;
+  border-color: var(--yellow-dark);
+  box-shadow: 0 0 0 3px rgba(255, 214, 0, 0.4);
+}
+.contact-form .btn { margin-top: 8px; align-self: flex-start; }
+.form-status { min-height: 1.4em; font-size: 0.92rem; }
+.form-status.ok { color: #1b5e20; }
+.form-status.err { color: var(--red-dark); }
+
+.check-list { list-style: none; }
+.check-list li { padding-left: 26px; position: relative; margin-bottom: 8px; }
+.check-list li::before { content: "🎪"; position: absolute; left: 0; }
+
+/* ---------- Footer ---------- */
+.footer {
+  text-align: center;
+  padding: 28px 16px calc(24px + env(safe-area-inset-bottom));
+  background: var(--red-deep);
+  color: var(--white);
+}
+.footer-logo { width: 48px; margin: 0 auto 8px; border-radius: 50%; background: var(--white); }
+.footer-colors { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
+
+/* ---------- Tablet e acima ---------- */
+@media (min-width: 600px) {
+  .menu-btn { display: none; }
+  .nav {
+    display: flex;
+    position: static;
+    flex-direction: row;
+    margin-left: auto;
+    background: transparent;
+    box-shadow: none;
+    min-width: 0;
+  }
+  .nav a { border-bottom: none; padding: 10px 14px; color: var(--white); border-radius: 999px; }
+  .nav a.active { background: var(--yellow); color: var(--red-deep); }
+  .nav a:hover { background: rgba(255, 255, 255, 0.2); color: var(--white); }
+  .grid-2, .grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 960px) {
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .section { padding: 48px 24px; }
+}
+
+/* ---------- Acessibilidade ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .btn, .btn:active { transition: none; transform: none; }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

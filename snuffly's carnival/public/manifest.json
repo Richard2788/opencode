@@ -1,0 +1,19 @@
+{
+  "name": "Snuffly's Carnival",
+  "short_name": "Snuffly's",
+  "description": "Jogos de carnaval pagos com premiação de bonecos, armas e acessórios geek de papel e papelão.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#e53935",
+  "background_color": "#fff8f0",
+  "lang": "pt-BR",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "snufflys-carnival",
+  "version": "1.0.0",
+  "description": "PWA do Snuffly's Carnival: jogos de carnaval pagos com premiação de bonecos e acessórios geek de papel e papelão.",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
+    "db:init": "node server/scripts/db-init.js"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "pg": "^8.12.0"
+  }
+}
