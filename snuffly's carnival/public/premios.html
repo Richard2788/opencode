@@ -33,8 +33,22 @@
     </section>
 
     <section class="section">
+      <div class="showcase-tools">
+        <div class="chips" role="group" aria-label="Filtrar por tipo de prêmio">
+          <button class="chip active" data-type="" aria-pressed="true">🎯 Todos</button>
+          <button class="chip" data-type="boneco" aria-pressed="false">🧸 Bonecos</button>
+          <button class="chip" data-type="arma" aria-pressed="false">⚔️ Armas</button>
+          <button class="chip" data-type="acessorio" aria-pressed="false">🎭 Acessórios</button>
+        </div>
+        <label class="sr-only" for="prizeSearch">Buscar prêmio por nome ou descrição</label>
+        <input id="prizeSearch" type="search" placeholder="🔎 Buscar prêmio…" autocomplete="off" />
+      </div>
+      <p id="prizesStatus" class="prizes-status" role="status"></p>
       <div id="prizesGrid" class="grid grid-3">
         <div class="card skeleton">Carregando prêmios…</div>
+      </div>
+      <div class="load-more-wrap">
+        <button id="loadMoreBtn" class="btn btn-red" hidden>Carregar mais 🎪</button>
       </div>
       <noscript><p class="notice">Ative o JavaScript para ver a vitrine de prêmios.</p></noscript>
     </section>

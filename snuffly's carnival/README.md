@@ -35,13 +35,15 @@ O web service adota **MVC**: `models` (PostgreSQL), `controllers` (lógica) e `r
 
 | Método | Rota | Descrição |
 |---|---|---|
-| GET | `/api/health` | Health check (Render) |
+| GET | `/api/health` | Health check (Render) — inclui status do banco |
 | GET | `/api/games` | Catálogo dos 4 jogos |
 | GET | `/api/games/:id` | Detalhe de um jogo |
-| GET | `/api/prizes` | Todos os prêmios |
+| GET | `/api/prizes` | Prêmios com filtros: `?type=&q=&page=&limit=&sort=recent\|name` |
 | GET | `/api/prizes/featured` | 3 prêmios em destaque |
 | GET | `/api/prizes/type/:type` | boneco \| arma \| acessorio |
-| POST | `/api/contact` | Mensagem de contato |
+| GET | `/api/scores/:gameId?limit=10` | Top pontuações de um jogo (ranking) |
+| POST | `/api/scores` | Registra pontuação: `{ game, player, points }` |
+| POST | `/api/contact` | Mensagem de contato (rate limit: 5 envios / 10 min) |
 
 ## Rodar localmente
 
@@ -49,15 +51,46 @@ O web service adota **MVC**: `models` (PostgreSQL), `controllers` (lógica) e `r
 cp .env.example .env           # ajuste DATABASE_URL se necessário
 npm install
 npm run db:init -- --seed      # cria tabelas + prêmios de exemplo
-npm start                      # http://localhost:3000
+npm run dev                    # http://localhost:3000 (auto-reload)
+# ou
+npm start
 ```
+
+## Qualidade de código
+
+```bash
+npm run lint        # ESLint (server + front JS)
+npm run format      # Prettier --write
+npm run format:check
+```
+
+## Estrutura pronta para os jogos
+
+Cada jogo tem sua página em `public/jogos/<id>/index.html` com um casca comum
+(`game-shell.js`) que exibe o ranking via `GET /api/scores/:gameId`. Quando o
+jogo for implementado, basta substituir o placeholder do `#gameRoot` e registrar
+a pontuação com `window.SnufflyGame.submitScore(player, points)` — que salva no
+Local Storage e envia à API.
+
+## Painel admin — mensagens do "Fale com a gente"
+
+As mensagens enviadas pelo formulário ficam salvas no banco e podem ser lidas em:
+
+```
+/admin/contatos        → senha definida em ADMIN_PASS (sessão de 12h)
+```
+
+Notificação instantânea (opcional): configure `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID`
+(crie o bot com @BotFather e converse com ele uma vez para obter o chat_id) e/ou
+`DISCORD_WEBHOOK_URL` (Canal → Integrations → Webhooks). Cada novo contato chega
+na hora no seu Telegram/Discord, além de ficar salvo no banco.
 
 ## Publicar no Render.com (via GitHub)
 
 1. Envie o repositório para o GitHub.
-2. No Render, crie um **Blueprint** apontando para o repositório — o `render.yaml` provisiona o web service + banco PostgreSQL free.
-3. A cada push na branch principal, o Render faz o deploy automático.
-4. No primeiro deploy, rode `npm run db:init -- --seed` via Shell do Render para criar as tabelas.
+2. No Render, crie um **Blueprint** apontando para o repositório — o `render.yaml` provisiona o web service + banco PostgreSQL free. As mensagens do formulário ficam no banco, no painel `/admin/contatos` e (opcionalmente) no Discord/Telegram — não há envio por SMTP.
+3. O comando `preDeployCommand` aplica o schema e o seed a cada deploy — não é preciso rodar `db:init` manualmente (o seed é idempotente: só popula com a tabela vazia).
+4. A cada push na branch principal, o Render faz o deploy automático.
 
 ## PWA
 
@@ -70,3 +103,7 @@ npm start                      # http://localhost:3000
 - `snuffly.visits` — contador/seletor de visitas.
 - `snuffly.seenPrizes` — marca prêmios já vistos (badge ✨ de novidade).
 - `snuffly.favorites` — prêmios favoritados na vitrine.
+- `snuffly.cachedPrizes` — última lista de prêmios carregada (fallback offline).
+- `snuffly.scores.<jogo>` — pontuações locais do jogador por jogo.
+
+Session ID: ses_e860bf3e5ffeJMCDrwtGD5GD76

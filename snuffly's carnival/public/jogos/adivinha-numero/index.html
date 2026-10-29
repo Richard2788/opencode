@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Adivinha o Meu Número — Snuffly's Carnival</title>
+  <meta name="description" content="Jogo de carnaval do Snuffly's Carnival: adivinhe o número de 1 a 10 que o vendedor escreveu no papel e ganhe prêmios geek de papel e papelão." />
+  <meta name="theme-color" content="#e53935" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="bunting" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <canvas id="confetti" aria-hidden="true"></canvas>
+
+  <div class="app">
+    <header class="topbar">
+      <a class="brand" href="/jogos.html" aria-label="Voltar para a lista de jogos">
+        <span class="brand__badge" aria-hidden="true">🎪</span>
+        <div class="brand__text">
+          <p class="brand__kicker">Snuffly's Carnival</p>
+          <h1 class="brand__title">Adivinha o Meu Número</h1>
+        </div>
+      </a>
+
+      <div class="topbar__actions">
+        <a class="icon-btn icon-btn--back" href="/jogos.html" aria-label="Voltar aos jogos">
+          <span class="icon-btn__ico" aria-hidden="true">←</span>
+          <span class="icon-btn__label">Jogos</span>
+        </a>
+        <button class="icon-btn" id="soundBtn" type="button" aria-pressed="true" aria-label="Desligar sons">
+          <span class="icon-btn__ico" id="soundIcon" aria-hidden="true">🔊</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="stage" aria-label="Vendedor e papel com o número secreto">
+        <div class="vendor">
+          <div class="vendor__avatar" aria-hidden="true">
+            <span>🤹🏽</span>
+          </div>
+          <p class="bubble" id="vendorSpeech">
+            Escolhi um número de 1 a 10 e escrevi no papel. Qual é o seu palpite?
+          </p>
+        </div>
+
+        <div class="paper" id="paper">
+          <div class="paper__stub">
+            <span class="paper__label" id="paperLabel">O papel diz</span>
+            <span class="paper__number" id="paperNumber">?</span>
+          </div>
+          <div class="paper__side" aria-hidden="true">
+            <span class="paper__seal">🎟️</span>
+            <span class="paper__hint">prêmio<br />na certa</span>
+          </div>
+        </div>
+
+        <div class="attempts" id="attempts" aria-label="3 tentativas restantes">
+          <span class="attempts__label">Tentativas</span>
+          <span class="attempts__dots" aria-hidden="true">
+            <span class="attempts__dot"></span>
+            <span class="attempts__dot"></span>
+            <span class="attempts__dot"></span>
+          </span>
+        </div>
+      </section>
+
+      <section class="board" aria-labelledby="boardTitle">
+        <h2 class="board__title" id="boardTitle">Escolha seu palpite</h2>
+        <div class="numbers" id="numbers" role="group" aria-labelledby="boardTitle"></div>
+      </section>
+
+      <div class="feedback" id="feedback" role="status" aria-live="polite">
+        <span class="feedback__icon" id="feedbackIcon" aria-hidden="true">🎟️</span>
+        <p class="feedback__text" id="feedbackText">Toque em um número de 1 a 10. Você tem 3 tentativas!</p>
+      </div>
+
+      <button type="button" class="btn btn--primary btn--wide" id="newRound" hidden>
+        Jogar de novo
+      </button>
+
+      <section class="stats" aria-label="Placar">
+        <div class="stat">
+          <span class="stat__value" id="statPrizes">0</span>
+          <span class="stat__label">Prêmios</span>
+        </div>
+        <div class="stat">
+          <span class="stat__value" id="statRounds">0</span>
+          <span class="stat__label">Rodadas</span>
+        </div>
+        <div class="stat">
+          <span class="stat__value" id="statStreak">0</span>
+          <span class="stat__label">Melhor sequência</span>
+        </div>
+      </section>
+
+      <section class="ranking card-panel" aria-labelledby="rankingTitle">
+        <h2 class="board__title" id="rankingTitle">🏆 Ranking — Top 10</h2>
+        <div id="gameRanking" aria-live="polite"><p class="ranking__empty">Carregando ranking…</p></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p class="footer__text">Snuffly's Carnival — prêmios geek de papel e papelão 🎊</p>
+      <button class="link-btn" id="resetBtn" type="button">Zerar placar</button>
+    </footer>
+  </div>
+
+  <dialog class="prize" id="prizeDialog" aria-labelledby="prizeTitle">
+    <div class="prize__card">
+      <p class="prize__kicker" id="prizeKicker">Prêmio</p>
+      <div class="prize__emoji" id="prizeEmoji" aria-hidden="true">🏆</div>
+      <h2 class="prize__title" id="prizeTitle">Acertou na mosca!</h2>
+      <p class="prize__text" id="prizeText"></p>
+      <div class="prize__actions">
+        <button type="button" class="btn btn--primary btn--wide" id="dialogPlay">Jogar de novo</button>
+        <button type="button" class="btn btn--ghost btn--wide" id="dialogClose">Fechar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="info" id="nameDialog" aria-labelledby="nameTitle">
+    <div class="info__card">
+      <div class="info__emoji" aria-hidden="true">🏆</div>
+      <h2 class="info__title" id="nameTitle">Entrar no ranking</h2>
+      <p class="info__lead">Qual é o seu nome (ou apelido) para o ranking da barraca?</p>
+      <form id="nameForm" class="name-form" method="dialog">
+        <label class="sr-only" for="playerName">Seu nome ou apelido</label>
+        <input id="playerName" name="playerName" type="text" maxlength="40" required
+               placeholder="Ex.: Rei Momo" autocomplete="nickname" />
+        <button type="submit" class="btn btn--primary btn--wide">Salvar e pontuar</button>
+      </form>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+    <span class="toast__text" id="toastText"></span>
+    <button type="button" class="toast__close" id="toastClose" aria-label="Fechar aviso">✕</button>
+  </div>
+
+  <noscript>
+    <p class="noscript">Ative o JavaScript para jogar o Adivinha o Meu Número.</p>
+  </noscript>
+
+  <script src="./scores.js" defer></script>
+  <script src="./game.js" defer></script>
+</body>
+</html>
