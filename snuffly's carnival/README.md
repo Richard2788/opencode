@@ -89,7 +89,7 @@ na hora no seu Telegram/Discord, além de ficar salvo no banco.
 
 1. Envie o repositório para o GitHub.
 2. No Render, crie um **Blueprint** apontando para o repositório — o `render.yaml` provisiona o web service + banco PostgreSQL free. As mensagens do formulário ficam no banco, no painel `/admin/contatos` e (opcionalmente) no Discord/Telegram — não há envio por SMTP.
-3. O comando `preDeployCommand` aplica o schema e o seed a cada deploy — não é preciso rodar `db:init` manualmente (o seed é idempotente: só popula com a tabela vazia).
+3. O servidor aplica o **schema e o seed automaticamente na inicialização** (idempotente) — não é preciso rodar `db:init` no Render. O plano Free não suporta `preDeployCommand`; por isso o próprio app prepara o banco antes de ouvir a porta.
 4. A cada push na branch principal, o Render faz o deploy automático.
 
 ## PWA

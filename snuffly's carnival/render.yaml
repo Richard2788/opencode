@@ -6,7 +6,6 @@ services:
     plan: free
     buildCommand: npm install
     startCommand: npm start
-    preDeployCommand: npm run db:init -- --seed
     healthCheckPath: /api/health
     envVars:
       - key: DATABASE_URL

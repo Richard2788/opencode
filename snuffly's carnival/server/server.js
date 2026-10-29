@@ -7,6 +7,7 @@ const express = require('express');
 const path = require('path');
 const routes = require('./routes/api.routes');
 const pool = require('./db');
+const ensureDb = require('./ensure-db');
 
 const app = express();
 
@@ -52,7 +53,7 @@ app.use((err, _req, res, _next) => {
 
 const port = process.env.PORT || 3000;
 
-// Verifica o banco na inicialização (mensagem amigável em vez de falha silenciosa)
+// Verifica o banco e aplica schema/seed (idempotente) na inicialização
 (async () => {
   try {
     await pool.query('SELECT 1');
@@ -64,6 +65,14 @@ const port = process.env.PORT || 3000;
         '  Dica local: confira as credenciais em .env (usuário/senha/porta)\n' +
         '  e rode "npm run db:init -- --seed" para criar as tabelas.'
     );
+    process.exit(1);
+  }
+
+  try {
+    await ensureDb();
+    console.log('✔ Schema e seed prontos.');
+  } catch (err) {
+    console.error('✖ Falha ao aplicar schema/seed:', err.message);
     process.exit(1);
   }
 
