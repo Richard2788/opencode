@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="297mm" viewBox="0 0 210 297">
+  <defs>
+    <pattern id="glue" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="4" height="4" fill="#ffe9c9"/>
+      <line x1="0" y1="0" x2="0" y2="4" stroke="#e2a96b" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+
+  <rect width="210" height="297" fill="#ffffff"/>
+
+  <!-- Cabeçalho -->
+  <rect width="210" height="33" fill="#3b0f5c"/>
+  <text x="12" y="12" font-family="DejaVu Sans, Arial, sans-serif" font-size="6.5" letter-spacing="0.8" font-weight="bold" fill="#ffc93c">HACK DA TORRE DE COPOS</text>
+  <text x="12" y="26" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" font-weight="bold" fill="#ffffff">Máscara da Corte</text>
+  <g transform="translate(168 8)">
+    <path d="M0 14 C0 4 6 0 11 0 C20 0 26 8 26 18 C26 26 20 30 11 30 C5 30 0 24 0 14 Z" fill="#ffd0e4" stroke="#3b0f5c" stroke-width="0.5"/>
+    <ellipse cx="8" cy="13" rx="3.4" ry="2" fill="#ffffff" stroke="#3b0f5c" stroke-width="0.4"/>
+    <ellipse cx="18" cy="13" rx="3.4" ry="2" fill="#ffffff" stroke="#3b0f5c" stroke-width="0.4"/>
+  </g>
+
+  <text x="12" y="42" font-family="DejaVu Sans, Arial, sans-serif" font-size="5.2" fill="#5c3a6e">A4 · linha cheia = recorte · tracejada = dobra · hachurado = cola</text>
+
+  <!-- Alças laterais -->
+  <rect x="9" y="106" width="16" height="36" fill="url(#glue)" stroke="#d6336c" stroke-width="0.45" stroke-dasharray="2.5 1.5"/>
+  <line x1="25" y1="106" x2="25" y2="142" stroke="#d6336c" stroke-width="0.45" stroke-dasharray="2.5 1.5"/>
+  <circle cx="16" cy="124" r="3.2" fill="#ffffff" stroke="#1b1b1b" stroke-width="0.6"/>
+
+  <rect x="185" y="106" width="16" height="36" fill="url(#glue)" stroke="#d6336c" stroke-width="0.45" stroke-dasharray="2.5 1.5"/>
+  <line x1="185" y1="106" x2="185" y2="142" stroke="#d6336c" stroke-width="0.45" stroke-dasharray="2.5 1.5"/>
+  <circle cx="194" cy="124" r="3.2" fill="#ffffff" stroke="#1b1b1b" stroke-width="0.6"/>
+
+  <!-- Máscara -->
+  <path d="M25 118 C25 88 61 76 105 76 C149 76 185 88 185 118 C185 143 166 160 141 160 C125 160 115 151 105 151 C95 151 85 160 69 160 C44 160 25 143 25 118 Z" fill="#ffe3ef" stroke="#1b1b1b" stroke-width="0.7"/>
+  <path d="M25 118 C25 88 61 76 105 76 C149 76 185 88 185 118" fill="none" stroke="#ffc93c" stroke-width="4" opacity="0.85"/>
+  <path d="M25 118 C25 88 61 76 105 76 C149 76 185 88 185 118" fill="none" stroke="#1b1b1b" stroke-width="0.5"/>
+
+  <!-- Olhos -->
+  <ellipse cx="71" cy="119" rx="20" ry="11.5" fill="#ffffff" stroke="#1b1b1b" stroke-width="0.7" transform="rotate(-7 71 119)"/>
+  <ellipse cx="139" cy="119" rx="20" ry="11.5" fill="#ffffff" stroke="#1b1b1b" stroke-width="0.7" transform="rotate(7 139 119)"/>
+
+  <!-- Recortes decorativos -->
+  <g fill="#ffffff" stroke="#1b1b1b" stroke-width="0.55">
+    <path d="M62 94 l1.8 4.4 4.4 1.8 -4.4 1.8 -1.8 4.4 -1.8 -4.4 -4.4 -1.8 4.4 -1.8 z"/>
+    <path d="M105 88 l2.2 5.4 5.4 2.2 -5.4 2.2 -2.2 5.4 -2.2 -5.4 -5.4 -2.2 5.4 -2.2 z"/>
+    <path d="M148 94 l1.8 4.4 4.4 1.8 -4.4 1.8 -1.8 4.4 -1.8 -4.4 -4.4 -1.8 4.4 -1.8 z"/>
+  </g>
+
+  <!-- Pintura decorativa -->
+  <g fill="none" stroke="#ff2d87" stroke-width="0.9" stroke-linecap="round" opacity="0.75">
+    <path d="M42 133 q9 -8 18 0"/>
+    <path d="M150 133 q9 -8 18 0"/>
+    <path d="M47 143 q7 -6 14 0"/>
+    <path d="M149 143 q7 -6 14 0"/>
+  </g>
+  <g fill="#16b39b" opacity="0.9">
+    <circle cx="43" cy="111" r="2.2"/>
+    <circle cx="167" cy="111" r="2.2"/>
+    <circle cx="105" cy="145" r="2"/>
+  </g>
+
+  <!-- Instruções -->
+  <rect x="12" y="176" width="186" height="64" rx="4" fill="#fff6ea" stroke="#ffc93c" stroke-width="0.7"/>
+  <text x="18" y="185" font-family="DejaVu Sans, Arial, sans-serif" font-size="7" font-weight="bold" letter-spacing="0.6" fill="#3b0f5c">COMO MONTAR</text>
+  <g font-family="DejaVu Sans, Arial, sans-serif" font-size="5.8" fill="#40264d">
+    <text x="18" y="194">1. Recorte a máscara, os olhos e os recortes decorativos.</text>
+    <text x="18" y="202">2. Dobre as abas laterais para trás e cole a ponta na máscara.</text>
+    <text x="18" y="210">3. Fure os círculos das abas e passe um elástico ou fita.</text>
+    <text x="18" y="218">4. Decore com purpurina, penas e brilho. Arrasou no bloco!</text>
+  </g>
+  <g transform="translate(18 228)">
+    <path d="M0 0 q6 -5 12 0 q6 5 12 0 q6 -5 12 0" fill="none" stroke="#ff2d87" stroke-width="1.2" stroke-linecap="round"/>
+    <text x="42" y="1.6" font-family="DejaVu Sans, Arial, sans-serif" font-size="4.8" fill="#7a5a88">cole aqui e use como suporte</text>
+  </g>
+
+  <!-- Miniatura de referência -->
+  <text x="18" y="256" font-family="DejaVu Sans, Arial, sans-serif" font-size="5" font-weight="bold" fill="#7a5a88">DICA: use papel 180g ou cole em cartolina para ficar firme.</text>
+</svg>

@@ -3,7 +3,7 @@
    - Cache-first com atualização em background para estáticos
    - Network-first para a API
    - Fallback offline.html para navegações sem rede            */
-const CACHE = 'snuffly-v3';
+const CACHE = 'snuffly-v5';
 const ASSETS = [
   '/',
   '/index.html',
@@ -27,6 +27,13 @@ const ASSETS = [
   '/jogos/adivinha-numero/style.css',
   '/jogos/adivinha-numero/game.js',
   '/jogos/adivinha-numero/scores.js',
+  // Jogo: Hack da Torre de Copos
+  '/jogos/hack-torre-copos/',
+  '/jogos/hack-torre-copos/index.html',
+  '/jogos/hack-torre-copos/style.css',
+  '/jogos/hack-torre-copos/game.js',
+  '/jogos/hack-torre-copos/scores.js',
+  '/jogos/hack-torre-copos/audio.js',
 ];
 
 self.addEventListener('install', (e) => {

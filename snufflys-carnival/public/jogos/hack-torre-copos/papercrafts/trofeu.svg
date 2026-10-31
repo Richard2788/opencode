@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="297mm" viewBox="0 0 210 297">
+  <defs>
+    <pattern id="glue" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="4" height="4" fill="#ffe9c9"/>
+      <line x1="0" y1="0" x2="0" y2="4" stroke="#e2a96b" stroke-width="0.5"/>
+    </pattern>
+    <linearGradient id="cupFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff8ec"/>
+      <stop offset="1" stop-color="#ffe1b8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="210" height="297" fill="#ffffff"/>
+
+  <!-- Cabeçalho -->
+  <rect width="210" height="33" fill="#3b0f5c"/>
+  <text x="12" y="12" font-family="DejaVu Sans, Arial, sans-serif" font-size="6.5" letter-spacing="0.8" font-weight="bold" fill="#ffc93c">HACK DA TORRE DE COPOS</text>
+  <text x="12" y="26" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" font-weight="bold" fill="#ffffff">Copo-Troféu do Bloco</text>
+  <g transform="translate(168 7)">
+    <path d="M0 0 H24 L20.5 17 Q20 19.4 17.6 19.4 H6.4 Q4 19.4 3.5 17 Z" fill="#ffd0e4" stroke="#3b0f5c" stroke-width="0.5"/>
+    <rect x="0" y="0" width="24" height="2.4" rx="1.2" fill="#ffc93c"/>
+  </g>
+
+  <text x="12" y="42" font-family="DejaVu Sans, Arial, sans-serif" font-size="5.2" fill="#5c3a6e">A4 · linha cheia = recorte · tracejada = dobra · hachurado = cola</text>
+
+  <!-- Corpo do copo -->
+  <text x="25" y="53" font-family="DejaVu Sans, Arial, sans-serif" font-size="5.4" font-weight="bold" fill="#7a5a88">COPO (8 faces) — cole a aba na última face</text>
+  <path d="M25 56 H185 L170 116 H40 Z" fill="url(#cupFill)" stroke="#1b1b1b" stroke-width="0.6"/>
+  <g stroke="#d6336c" stroke-width="0.45" stroke-dasharray="2.5 1.5">
+    <line x1="45" y1="56" x2="56.25" y2="116"/>
+    <line x1="65" y1="56" x2="72.5" y2="116"/>
+    <line x1="85" y1="56" x2="88.75" y2="116"/>
+    <line x1="105" y1="56" x2="105" y2="116"/>
+    <line x1="125" y1="56" x2="121.25" y2="116"/>
+    <line x1="145" y1="56" x2="137.5" y2="116"/>
+    <line x1="165" y1="56" x2="153.75" y2="116"/>
+  </g>
+  <path d="M185 56 L194 60 L179 120 L170 116 Z" fill="url(#glue)" stroke="#1b1b1b" stroke-width="0.55"/>
+  <line x1="185" y1="56" x2="170" y2="116" stroke="#d6336c" stroke-width="0.45" stroke-dasharray="2.5 1.5"/>
+
+  <!-- Fundo do copo -->
+  <text x="25" y="122" font-family="DejaVu Sans, Arial, sans-serif" font-size="5.2" font-weight="bold" fill="#7a5a88">FUNDO DO COPO</text>
+  <circle cx="52" cy="146" r="20.7" fill="url(#cupFill)" stroke="#1b1b1b" stroke-width="0.6"/>
+  <circle cx="52" cy="146" r="16" fill="none" stroke="#ff2d87" stroke-width="0.4" stroke-dasharray="1.5 1.5" opacity="0.6"/>
+
+  <!-- Alça -->
+  <text x="118" y="128" font-family="DejaVu Sans, Arial, sans-serif" font-size="5.2" font-weight="bold" fill="#7a5a88">ALÇA — recorte 2x</text>
+  <path d="M125 140 C158 124 192 140 192 156 C192 172 158 188 125 172 L125 162 C155 175 180 167 180 156 C180 145 155 135 125 148 Z" fill="url(#cupFill)" stroke="#1b1b1b" stroke-width="0.6"/>
+  <rect x="113" y="138" width="12" height="36" fill="url(#glue)" stroke="#1b1b1b" stroke-width="0.55"/>
+  <line x1="125" y1="139" x2="125" y2="173" stroke="#d6336c" stroke-width="0.45" stroke-dasharray="2.5 1.5"/>
+
+  <!-- Pedestal -->
+  <text x="25" y="186" font-family="DejaVu Sans, Arial, sans-serif" font-size="5.2" font-weight="bold" fill="#7a5a88">PEDESTAL (8 faces)</text>
+  <path d="M30 190 H174 L170 202 H34 Z" fill="#ffd0e4" stroke="#1b1b1b" stroke-width="0.6"/>
+  <g stroke="#d6336c" stroke-width="0.45" stroke-dasharray="2.5 1.5">
+    <line x1="48" y1="190" x2="51.25" y2="202"/>
+    <line x1="66" y1="190" x2="68.5" y2="202"/>
+    <line x1="84" y1="190" x2="85.75" y2="202"/>
+    <line x1="102" y1="190" x2="103" y2="202"/>
+    <line x1="120" y1="190" x2="120.25" y2="202"/>
+    <line x1="138" y1="190" x2="137.5" y2="202"/>
+    <line x1="156" y1="190" x2="154.75" y2="202"/>
+  </g>
+  <path d="M174 190 L182 193 L178 205 L170 202 Z" fill="url(#glue)" stroke="#1b1b1b" stroke-width="0.55"/>
+  <line x1="174" y1="190" x2="170" y2="202" stroke="#d6336c" stroke-width="0.45" stroke-dasharray="2.5 1.5"/>
+
+  <!-- Fundo do pedestal -->
+  <text x="80" y="222" font-family="DejaVu Sans, Arial, sans-serif" font-size="5.2" font-weight="bold" fill="#7a5a88">FUNDO DO PEDESTAL</text>
+  <circle cx="52" cy="224" r="21.7" fill="#ffd0e4" stroke="#1b1b1b" stroke-width="0.6"/>
+
+  <!-- Estrela -->
+  <path d="M160 206 L162.9 213.95 L171.4 214.3 L164.9 219.4 L167.1 227.6 L160 223 L152.9 227.6 L155.1 219.4 L148.6 214.3 L157.1 213.95 Z" fill="#ffc93c" stroke="#1b1b1b" stroke-width="0.55"/>
+
+  <!-- Instruções -->
+  <rect x="12" y="250" width="186" height="44" rx="4" fill="#fff6ea" stroke="#ffc93c" stroke-width="0.7"/>
+  <text x="18" y="259" font-family="DejaVu Sans, Arial, sans-serif" font-size="7" font-weight="bold" letter-spacing="0.6" fill="#3b0f5c">COMO MONTAR</text>
+  <g font-family="DejaVu Sans, Arial, sans-serif" font-size="5.2" fill="#40264d">
+    <text x="18" y="268">1. Recorte copo, fundos, alça (2x), pedestal e estrela.</text>
+    <text x="18" y="276">2. Dobre as linhas tracejadas e cole a aba do copo.</text>
+    <text x="18" y="284">3. Monte o pedestal, cole as alças e finalize com a estrela.</text>
+  </g>
+  <text x="18" y="292" font-family="DejaVu Sans, Arial, sans-serif" font-size="4.8" font-style="italic" fill="#7a5a88">Dica: papel 180g ou cartolina. Recheie com doces do bloco.</text>
+</svg>

@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="297mm" viewBox="0 0 210 297">
+  <defs>
+    <pattern id="glue" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="4" height="4" fill="#ffe9c9"/>
+      <line x1="0" y1="0" x2="0" y2="4" stroke="#e2a96b" stroke-width="0.5"/>
+    </pattern>
+    <clipPath id="flagClip">
+      <path d="M25 78 H185 L105 224 Z"/>
+    </clipPath>
+  </defs>
+
+  <rect width="210" height="297" fill="#ffffff"/>
+
+  <!-- Cabeçalho -->
+  <rect width="210" height="33" fill="#3b0f5c"/>
+  <text x="12" y="12" font-family="DejaVu Sans, Arial, sans-serif" font-size="6.5" letter-spacing="0.8" font-weight="bold" fill="#ffc93c">HACK DA TORRE DE COPOS</text>
+  <text x="12" y="26" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" font-weight="bold" fill="#ffffff">Estandarte do Bloco</text>
+  <g transform="translate(166 9)">
+    <path d="M0 0 H22 L19 16 Q18.6 18 16.4 18 H5.6 Q3.4 18 3 16 Z" fill="#fff4e6" stroke="#3b0f5c" stroke-width="0.5"/>
+    <rect x="0" y="0" width="22" height="2.2" rx="1" fill="#ffc93c"/>
+  </g>
+  <g transform="translate(191 12)">
+    <path d="M0 0 H9 L7.7 13 Q7.6 14.4 6.4 14.4 H2.6 Q1.4 14.4 1.3 13 Z" fill="#ffd0e4" stroke="#3b0f5c" stroke-width="0.4"/>
+    <rect x="0" y="0" width="9" height="1.6" rx="0.8" fill="#ffc93c"/>
+  </g>
+
+  <text x="12" y="42" font-family="DejaVu Sans, Arial, sans-serif" font-size="5.2" fill="#5c3a6e">A4 · linha cheia = recorte · tracejada = dobra · hachurado = cola</text>
+
+  <!-- Aba de cola / túnel do mastro -->
+  <rect x="25" y="62" width="160" height="16" fill="url(#glue)" stroke="#d6336c" stroke-width="0.45" stroke-dasharray="2.5 1.5"/>
+  <line x1="25" y1="78" x2="185" y2="78" stroke="#d6336c" stroke-width="0.45" stroke-dasharray="2.5 1.5"/>
+
+  <!-- Bandeira -->
+  <path d="M25 78 H185 L105 224 Z" fill="#ffe3ef" stroke="#1b1b1b" stroke-width="0.6"/>
+  <g clip-path="url(#flagClip)">
+    <path d="M25 78 L70 224 H105 L25 78 Z" fill="#ffd0e4"/>
+    <path d="M105 78 L105 224 L140 224 L105 78 Z" fill="#ffd0e4"/>
+    <path d="M25 78 H185 L105 224 Z" fill="none" stroke="#ff2d87" stroke-width="0.4" opacity="0.35"/>
+    <g fill="#ff2d87" opacity="0.85">
+      <circle cx="62" cy="112" r="3"/>
+      <circle cx="148" cy="112" r="3"/>
+      <circle cx="88" cy="150" r="2.4"/>
+      <circle cx="128" cy="150" r="2.4"/>
+      <circle cx="105" cy="190" r="2.2"/>
+    </g>
+    <g fill="#16b39b">
+      <rect x="80" y="98" width="3.2" height="8" rx="1.6" transform="rotate(-28 81.6 102)"/>
+      <rect x="134" y="168" width="3" height="7" rx="1.5" transform="rotate(32 135.5 171.5)"/>
+    </g>
+  </g>
+
+  <!-- Faixa central -->
+  <g transform="translate(105 158) rotate(-8)">
+    <rect x="-48" y="-9" width="96" height="18" rx="3" fill="#ffc93c" stroke="#1b1b1b" stroke-width="0.5"/>
+    <text x="0" y="3.4" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="8.5" font-weight="bold" letter-spacing="1.4" fill="#3b0f5c">CARNAVAL</text>
+  </g>
+
+  <!-- Estrelas decorativas -->
+  <g fill="#ffc93c" stroke="#1b1b1b" stroke-width="0.45">
+    <path d="M19 92 l2.6 6.4 6.4 2.6 -6.4 2.6 -2.6 6.4 -2.6 -6.4 -6.4 -2.6 6.4 -2.6 z"/>
+    <path d="M193 188 l2.2 5.4 5.4 2.2 -5.4 2.2 -2.2 5.4 -2.2 -5.4 -5.4 -2.2 5.4 -2.2 z"/>
+  </g>
+
+  <!-- Instruções -->
+  <rect x="12" y="234" width="186" height="53" rx="4" fill="#fff6ea" stroke="#ffc93c" stroke-width="0.7"/>
+  <text x="18" y="243" font-family="DejaVu Sans, Arial, sans-serif" font-size="7" font-weight="bold" letter-spacing="0.6" fill="#3b0f5c">COMO MONTAR</text>
+  <g font-family="DejaVu Sans, Arial, sans-serif" font-size="5.8" fill="#40264d">
+    <text x="18" y="252">1. Recorte a bandeira e as estrelas.</text>
+    <text x="18" y="260">2. Dobre a aba superior ao meio e cole, formando um túnel.</text>
+    <text x="18" y="268">3. Passe um palito, cano ou vassoura pelo túnel.</text>
+    <text x="18" y="276">4. Cole as estrelas e pendure no seu bloco!</text>
+  </g>
+  <g transform="translate(166 241)">
+    <path d="M0 3 L3 0 M3 3 L0 0" stroke="#ff2d87" stroke-width="0.8" stroke-linecap="round"/>
+    <text x="5" y="3.2" font-family="DejaVu Sans, Arial, sans-serif" font-size="4.8" fill="#7a5a88">recorte</text>
+    <line x1="0" y1="8" x2="6" y2="8" stroke="#d6336c" stroke-width="0.45" stroke-dasharray="1.6 1"/>
+    <text x="8" y="9.2" font-family="DejaVu Sans, Arial, sans-serif" font-size="4.8" fill="#7a5a88">dobre</text>
+  </g>
+</svg>

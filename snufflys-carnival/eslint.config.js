@@ -18,6 +18,8 @@ module.exports = [
         URL: 'readonly',
         // Navegador (public)
         requestAnimationFrame: 'readonly',
+        cancelAnimationFrame: 'readonly',
+        performance: 'readonly',
         HTMLInputElement: 'readonly',
         HTMLTextAreaElement: 'readonly',
         window: 'readonly',
@@ -32,6 +34,8 @@ module.exports = [
         clients: 'readonly',
         self: 'readonly',
         Response: 'readonly',
+        // Áudio sintetizado dos jogos (window.Sound)
+        Sound: 'readonly',
         // Service worker
         skipWaiting: 'off',
       },
