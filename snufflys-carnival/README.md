@@ -7,7 +7,7 @@ PWA de divulgação da **Snuffly's Carnival** — jogos de carnaval pagos com pr
 ```
 public/              Front-end (static site, PWA)
   index.html         Home (hero, como funciona, destaque, CTA de instalação)
-  jogos.html         Catálogo dos 4 jogos (placeholders "Em breve")
+  jogos.html         Catálogo dos 4 jogos (3 jogáveis: Tomba-copos, Hack da Torre e Adivinha o Meu Número)
   premios.html       Vitrine de prêmios (carrega da API)
   sobre.html         Sobre + formulário de contato
   css/style.css      Tema carnaval (vermelho, amarelo, branco), Mobile First
@@ -43,7 +43,7 @@ O web service adota **MVC**: `models` (PostgreSQL), `controllers` (lógica) e `r
 | GET | `/api/prizes/type/:type` | boneco \| arma \| acessorio |
 | GET | `/api/scores/:gameId?limit=10` | Top pontuações de um jogo (ranking) |
 | POST | `/api/scores` | Registra pontuação: `{ game, player, points }` |
-| POST | `/api/contact` | Mensagem de contato (rate limit: 5 envios / 10 min) |
+| POST | `/api/contact` | Mensagem de contato (rate limit: 10 envios / 10 min) |
 
 ## Rodar localmente
 
@@ -104,6 +104,9 @@ na hora no seu Telegram/Discord, além de ficar salvo no banco.
 - `snuffly.seenPrizes` — marca prêmios já vistos (badge ✨ de novidade).
 - `snuffly.favorites` — prêmios favoritados na vitrine.
 - `snuffly.cachedPrizes` — última lista de prêmios carregada (fallback offline).
-- `snuffly.scores.<jogo>` — pontuações locais do jogador por jogo.
+- `snuffly.scores.<jogo>` — pontuações locais do jogador por jogo (game-shell).
+- `snuffly.playerName` — nome do jogador usado no ranking dos jogos.
+- `snuffly.pendingScores.<jogo>` — pontuações feitas offline, enviadas depois.
+- `snuffly.game.adivinha` / `hack-torre-copos.v4` — placar e preferências de cada jogo.
 
 Session ID: ses_e860bf3e5ffeJMCDrwtGD5GD76

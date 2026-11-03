@@ -26,7 +26,7 @@ function layout(title, body) {
   <title>${title} — Snuffly's Carnival</title>
   <link rel="icon" href="/favicon.png" type="image/png" />
   <style>
-    :root { --red:#e53935; --red-dark:#b71c1c; --deep:#7f1010; --yellow:#ffd600; --cream:#fff8f0; --ink:#2a1414; --muted:#7a5a55; }
+    :root { --red:#e53935; --red-dark:#b71c1c; --deep:#7f1010; --yellow:#ffd600; --cream:#fff8f0; --white:#fff; --ink:#2a1414; --muted:#7a5a55; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; background: var(--cream); color: var(--ink); line-height: 1.55; padding: 24px 16px; }
     header { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 860px; margin: 0 auto 20px; flex-wrap: wrap; }

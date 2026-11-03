@@ -3,7 +3,7 @@
    - Cache-first com atualização em background para estáticos
    - Network-first para a API
    - Fallback offline.html para navegações sem rede            */
-const CACHE = 'snuffly-v5';
+const CACHE = 'snuffly-v6';
 const ASSETS = [
   '/',
   '/index.html',
@@ -34,6 +34,14 @@ const ASSETS = [
   '/jogos/hack-torre-copos/game.js',
   '/jogos/hack-torre-copos/scores.js',
   '/jogos/hack-torre-copos/audio.js',
+  // Jogo: Tomba-copos
+  '/jogos/tomba-copos/',
+  '/jogos/tomba-copos/index.html',
+  '/jogos/tomba-copos/css/style.css',
+  '/jogos/tomba-copos/js/game.js',
+  '/jogos/tomba-copos/js/app.js',
+  '/jogos/tomba-copos/scores.js',
+  '/jogos/tomba-copos/assets/papercraft.svg',
 ];
 
 self.addEventListener('install', (e) => {

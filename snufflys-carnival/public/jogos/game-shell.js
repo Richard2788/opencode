@@ -46,6 +46,12 @@
       </div>`;
   }
 
+  function escapeHTML(str) {
+    return String(str).replace(/[&<>"']/g, (c) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+  }
+
   /** Ranking via API — mostra Top 10 do jogo; fallback: mensagem simples. */
   async function renderRanking(list) {
     if (!list) return;
@@ -66,7 +72,7 @@
           .map(
             (s, i) => `
         <li><span class="rank">${['🥇', '🥈', '🥉'][i] || i + 1 + 'º'}</span>
-            <strong>${s.player}</strong> — ${s.points} pts</li>`
+            <strong>${escapeHTML(s.player)}</strong> — ${s.points} pts</li>`
           )
           .join('') +
         '</ol>';

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 380" width="300" height="380">
+  <defs>
+    <linearGradient id="dress" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff8fb0"/>
+      <stop offset="0.55" stop-color="#ff5fa2"/>
+      <stop offset="1" stop-color="#7b1fa2"/>
+    </linearGradient>
+    <linearGradient id="featherGold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="1" stop-color="#ff9f43"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ===== ABAS DE COLAR (recortar, dobrar na linha tracejada e colar) ===== -->
+  <g>
+    <!-- aba do braço esquerdo -->
+    <path d="M22 122 h26 v20 h-26 z" fill="#e8e0f0" opacity="0.95" stroke="#b39ddb" stroke-width="1"/>
+    <line x1="48" y1="122" x2="48" y2="142" stroke="#6a4c93" stroke-width="1.2" stroke-dasharray="3 3"/>
+    <text x="30" y="135" font-family="Arial, sans-serif" font-size="7" fill="#777">aba</text>
+    <!-- aba do braço direito -->
+    <path d="M252 122 h26 v20 h-26 z" fill="#e8e0f0" opacity="0.95" stroke="#b39ddb" stroke-width="1"/>
+    <line x1="252" y1="122" x2="252" y2="142" stroke="#6a4c93" stroke-width="1.2" stroke-dasharray="3 3"/>
+    <text x="258" y="135" font-family="Arial, sans-serif" font-size="7" fill="#777">aba</text>
+    <!-- aba lateral esquerda da saia -->
+    <path d="M60 250 h26 v24 h-26 z" fill="#e8e0f0" opacity="0.95" stroke="#b39ddb" stroke-width="1"/>
+    <line x1="86" y1="250" x2="86" y2="274" stroke="#6a4c93" stroke-width="1.2" stroke-dasharray="3 3"/>
+    <text x="66" y="265" font-family="Arial, sans-serif" font-size="7" fill="#777">aba</text>
+    <!-- aba lateral direita da saia -->
+    <path d="M214 250 h26 v24 h-26 z" fill="#e8e0f0" opacity="0.95" stroke="#b39ddb" stroke-width="1"/>
+    <line x1="214" y1="250" x2="214" y2="274" stroke="#6a4c93" stroke-width="1.2" stroke-dasharray="3 3"/>
+    <text x="220" y="265" font-family="Arial, sans-serif" font-size="7" fill="#777">aba</text>
+    <!-- aba inferior (base de pé) -->
+    <path d="M118 322 h64 v34 h-64 z" fill="#e8e0f0" opacity="0.95" stroke="#b39ddb" stroke-width="1"/>
+    <line x1="118" y1="322" x2="182" y2="322" stroke="#6a4c93" stroke-width="1.2" stroke-dasharray="3 3"/>
+    <text x="133" y="342" font-family="Arial, sans-serif" font-size="7" fill="#777">cole • dobra</text>
+  </g>
+
+  <!-- ===== PENAS DO TOUCA ===== -->
+  <ellipse cx="126" cy="52" rx="9" ry="24" fill="#ff5fa2" stroke="#c2185b" stroke-width="1.5" transform="rotate(-18 126 52)"/>
+  <ellipse cx="174" cy="52" rx="9" ry="24" fill="#29d8ff" stroke="#0277bd" stroke-width="1.5" transform="rotate(18 174 52)"/>
+  <ellipse cx="150" cy="38" rx="10" ry="27" fill="url(#featherGold)" stroke="#d84315" stroke-width="1.5"/>
+
+  <!-- ===== CABELO ===== -->
+  <circle cx="112" cy="88" r="11" fill="#4a1965"/>
+  <circle cx="188" cy="88" r="11" fill="#4a1965"/>
+  <circle cx="118" cy="76" r="8" fill="#4a1965"/>
+  <circle cx="182" cy="76" r="8" fill="#4a1965"/>
+
+  <!-- ===== CABEÇA ===== -->
+  <circle cx="150" cy="95" r="36" fill="#ffd9b3" stroke="#e0a172" stroke-width="2"/>
+  <!-- faixa/frontal dourada da fantasista -->
+  <rect x="120" y="64" width="60" height="11" rx="5" fill="#ffc93c" stroke="#d84315" stroke-width="1.5"/>
+  <circle cx="150" cy="69" r="4" fill="#ff5fa2" stroke="#c2185b" stroke-width="1"/>
+
+  <!-- ===== MÁSCARA DE CARNAVAL ===== -->
+  <path d="M110 96 C112 76 140 73 147 86 C149 80 151 80 153 86 C160 73 188 76 190 96 C182 110 160 106 150 97 C140 106 118 110 110 96 Z"
+        fill="#00e08a" stroke="#ffc93c" stroke-width="2"/>
+  <circle cx="128" cy="88" r="5" fill="#fff"/>
+  <circle cx="172" cy="88" r="5" fill="#fff"/>
+  <circle cx="128" cy="89" r="2.6" fill="#2b0a4e"/>
+  <circle cx="172" cy="89" r="2.6" fill="#2b0a4e"/>
+  <circle cx="120" cy="80" r="1.8" fill="#ffc93c"/>
+  <circle cx="150" cy="80" r="1.8" fill="#ffc93c"/>
+  <circle cx="180" cy="80" r="1.8" fill="#ffc93c"/>
+
+  <!-- rosto -->
+  <circle cx="120" cy="110" r="4" fill="#ff8fb0" opacity="0.85"/>
+  <circle cx="180" cy="110" r="4" fill="#ff8fb0" opacity="0.85"/>
+  <path d="M138 118 Q150 128 162 118" fill="none" stroke="#d84315" stroke-width="3.5" stroke-linecap="round"/>
+
+  <!-- ===== PESCOÇO E TRONCO ===== -->
+  <rect x="143" y="128" width="14" height="12" fill="#ffd9b3" stroke="#e0a172" stroke-width="1"/>
+  <path d="M118 140 C130 136 170 136 182 140 L218 306 Q150 326 82 306 Z"
+        fill="url(#dress)" stroke="#fff" stroke-opacity="0.6" stroke-width="2"/>
+
+  <!-- cinto dourado -->
+  <rect x="114" y="176" width="72" height="12" rx="6" fill="#ffc93c" stroke="#d84315" stroke-width="1.5"/>
+  <circle cx="150" cy="182" r="4.5" fill="#c2185b"/>
+
+  <!-- purpurina da saia: pontinhos de confete -->
+  <g fill="#ffc93c">
+    <circle cx="106" cy="208" r="2.6"/><circle cx="150" cy="204" r="2.6"/><circle cx="194" cy="208" r="2.6"/>
+    <circle cx="128" cy="238" r="2.6"/><circle cx="172" cy="238" r="2.6"/>
+    <circle cx="106" cy="268" r="2.6"/><circle cx="150" cy="264" r="2.6"/><circle cx="194" cy="268" r="2.6"/>
+  </g>
+  <g fill="#00e08a">
+    <rect x="145" y="222" width="9" height="9" rx="1.5" transform="rotate(45 149.5 226.5)"/>
+    <rect x="123" y="252" width="9" height="9" rx="1.5" transform="rotate(45 127.5 256.5)"/>
+    <rect x="168" y="252" width="9" height="9" rx="1.5" transform="rotate(45 172.5 256.5)"/>
+  </g>
+
+  <!-- babado da barra da saia -->
+  <circle cx="100" cy="306" r="11" fill="#ffc93c"/>
+  <circle cx="126" cy="308" r="11" fill="#ff5fa2"/>
+  <circle cx="150" cy="309" r="11" fill="#ffc93c"/>
+  <circle cx="174" cy="308" r="11" fill="#ff5fa2"/>
+  <circle cx="200" cy="306" r="11" fill="#ffc93c"/>
+
+  <!-- ===== BRAÇOS ===== -->
+  <line x1="112" y1="152" x2="56" y2="134" stroke="#ffd9b3" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="54" cy="133" r="6.5" fill="#ffd9b3" stroke="#e0a172" stroke-width="1.5"/>
+  <circle cx="86" cy="143" r="6" fill="none" stroke="#ffc93c" stroke-width="3.5"/>
+  <line x1="188" y1="152" x2="244" y2="134" stroke="#ffd9b3" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="246" cy="133" r="6.5" fill="#ffd9b3" stroke="#e0a172" stroke-width="1.5"/>
+  <circle cx="214" cy="143" r="6" fill="none" stroke="#ffc93c" stroke-width="3.5"/>
+
+  <!-- ===== BRILHOS DECORATIVOS ===== -->
+  <g fill="#ffc93c" opacity="0.9">
+    <path d="M40 60 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3 z"/>
+    <path d="M258 66 l2.5 6 6 2.5 -6 2.5 -2.5 6 -2.5 -6 -6 -2.5 6 -2.5 z"/>
+    <path d="M224 170 l2.2 5.4 5.4 2.2 -5.4 2.2 -2.2 5.4 -2.2 -5.4 -5.4 -2.2 5.4 -2.2 z"/>
+    <path d="M74 166 l2.2 5.4 5.4 2.2 -5.4 2.2 -2.2 5.4 -2.2 -5.4 -5.4 -2.2 5.4 -2.2 z"/>
+  </g>
+
+  <!-- ===== LINHAS DE DOBRA (braços para baixo ao recortar) ===== -->
+  <line x1="70" y1="146" x2="96" y2="155" stroke="#6a4c93" stroke-width="1" stroke-dasharray="2.5 2.5"/>
+  <line x1="204" y1="155" x2="230" y2="146" stroke="#6a4c93" stroke-width="1" stroke-dasharray="2.5 2.5"/>
+</svg>

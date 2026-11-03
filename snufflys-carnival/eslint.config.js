@@ -36,6 +36,12 @@ module.exports = [
         Response: 'readonly',
         // Áudio sintetizado dos jogos (window.Sound)
         Sound: 'readonly',
+        // Motor do Tomba-copos (window.TombaCarnaval)
+        TombaCarnaval: 'readonly',
+        // Canvas / Blob (jogo Tomba-copos)
+        CanvasRenderingContext2D: 'readonly',
+        Blob: 'readonly',
+        PointerEvent: 'readonly',
         // Service worker
         skipWaiting: 'off',
       },

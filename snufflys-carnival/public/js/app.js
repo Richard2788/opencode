@@ -112,7 +112,7 @@
         <h3>${p.name}${isNew ? ' <span title="Novidade">✨</span>' : ''}</h3>
         <p>${p.description || ''}</p>
         ${p.rarity ? `<span class="prize-rarity rarity-${p.rarity}">Raridade: ${p.rarity}</span>` : ''}
-        <button class="btn-fav" aria-pressed="${isFav}" aria-label="${isFav ? 'Remover' : 'Marcar'} "${p.name}" como favorito" data-id="${p.id}">
+        <button class="btn-fav" aria-pressed="${isFav}" aria-label="${isFav ? 'Remover' : 'Marcar'} &quot;${p.name}&quot; ${isFav ? 'dos favoritos' : 'como favorito'}" data-id="${p.id}">
           ${isFav ? '❤️ Favorito' : '🤍 Favoritar'}
         </button>
       </div>`;

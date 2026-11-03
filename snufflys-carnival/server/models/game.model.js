@@ -4,7 +4,7 @@ const games = [
     id: 'tomba-copos',
     name: 'Tomba-copos',
     emoji: '🥤',
-    description: 'Copos empilhados em pirâmide; derrube com uma bola de meia à distância.',
+    description: 'Copos empilhados em pirâmide; derrube com uma bola de tênis à distância.',
     skill: 'arremesso',
   },
   {
