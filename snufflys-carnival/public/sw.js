@@ -3,7 +3,7 @@
    - Cache-first com atualização em background para estáticos
    - Network-first para a API
    - Fallback offline.html para navegações sem rede            */
-const CACHE = 'snuffly-v6';
+const CACHE = 'snuffly-v7';
 const ASSETS = [
   '/',
   '/index.html',
@@ -42,6 +42,18 @@ const ASSETS = [
   '/jogos/tomba-copos/js/app.js',
   '/jogos/tomba-copos/scores.js',
   '/jogos/tomba-copos/assets/papercraft.svg',
+  // Jogo: Beer Pong
+  '/jogos/beer-pong/',
+  '/jogos/beer-pong/index.html',
+  '/jogos/beer-pong/styles.css',
+  '/jogos/beer-pong/scores.js',
+  '/jogos/beer-pong/js/config.js',
+  '/jogos/beer-pong/js/store.js',
+  '/jogos/beer-pong/js/audio.js',
+  '/jogos/beer-pong/js/render.js',
+  '/jogos/beer-pong/js/game.js',
+  '/jogos/beer-pong/js/ui.js',
+  '/jogos/beer-pong/js/main.js',
 ];
 
 self.addEventListener('install', (e) => {

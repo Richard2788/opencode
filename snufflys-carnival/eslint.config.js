@@ -1,7 +1,38 @@
 /* ESLint (flat config) — regras essenciais, sem conflitar com o estilo existente. */
 module.exports = [
+  // ES modules do jogo Beer Pong (import/export no navegador)
+  {
+    files: ['public/jogos/beer-pong/js/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        navigator: 'readonly',
+        window: 'readonly',
+        document: 'readonly',
+        localStorage: 'readonly',
+        performance: 'readonly',
+        requestAnimationFrame: 'readonly',
+        cancelAnimationFrame: 'readonly',
+        URLSearchParams: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        Path2D: 'readonly',
+        confirm: 'readonly',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['warn', { args: 'none', caughtErrors: 'none' }],
+      'no-undef': 'error',
+      'no-console': 'off',
+      eqeqeq: ['warn', 'smart'],
+    },
+  },
   {
     files: ['server/**/*.js', 'public/js/**/*.js', 'public/jogos/**/*.js'],
+    ignores: ['public/jogos/beer-pong/js/**'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'commonjs',

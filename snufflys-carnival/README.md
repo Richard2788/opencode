@@ -7,7 +7,7 @@ PWA de divulgação da **Snuffly's Carnival** — jogos de carnaval pagos com pr
 ```
 public/              Front-end (static site, PWA)
   index.html         Home (hero, como funciona, destaque, CTA de instalação)
-  jogos.html         Catálogo dos 4 jogos (3 jogáveis: Tomba-copos, Hack da Torre e Adivinha o Meu Número)
+  jogos.html         Catálogo dos 4 jogos (todos jogáveis)
   premios.html       Vitrine de prêmios (carrega da API)
   sobre.html         Sobre + formulário de contato
   css/style.css      Tema carnaval (vermelho, amarelo, branco), Mobile First
