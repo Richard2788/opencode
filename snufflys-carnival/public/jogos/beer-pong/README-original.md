@@ -1,4 +1,4 @@
-# 🍻 Beer Pong — Mesa Neon
+# 🏓 Cup Pong — Snuffly's Carnival
 
 PWA de beer pong com visual neon, feita para jogar no celular. Sem build, sem
 dependências e sem backend: HTML, CSS e JavaScript puro.
@@ -141,10 +141,10 @@ No computador: arraste com o mouse ou use as setas + espaço/Enter.
 - Nome/ícones: `manifest.json` e a pasta `icons/`.
 - Para regenerar ícones: `powershell -ExecutionPolicy Bypass -File tools/make-icons.ps1`.
 
-## ⚠️ Aviso
+## 🎪 Nota
 
-Conteúdo para maiores de 18 anos. Beba com moderação e nunca dirija depois de
-beber. O jogo funciona perfeitamente com água — a diversão é a mira. 🏓
+Cup Pong é uma versão familiar do clássico jogo dos copos — sem bebida, só mira e
+carnaval. 🏓
 
 ## 📄 Licença
 

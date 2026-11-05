@@ -1,4 +1,4 @@
-import { CUP_RADIUS, MAX_PARTICLES } from './config.js';
+import { PHYS, MAX_PARTICLES } from './config.js';
 
 const TAU = Math.PI * 2;
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -26,6 +26,16 @@ export class Renderer {
     this.floaters = [];
     this.shake = 0;
     this.time = 0;
+    this.flashAlpha = 0;   // flash branco no acerto
+    this.zoom = 0;         // zoom dramático (slow-mo)
+    this.timeScale = 1;    // 1 = normal, <1 = slow-mo
+    this.heat = 0;         // vinheta de streak (0..1)
+    this.fever = false;    // modo EXTREME FEVER (último copo)
+    this.feverT = 0;       // tempo do banner de fever
+    this.feverFail = 0;    // tint de derrota dramática
+    this.feverResult = ''; // '' | 'win' | 'lose'
+    this.cam = { x: -1, y: -1, zoom: 0 }; // câmera; zoom 0 = centrado normal
+    this.camFollow = false;               // perseguição da bola no fever-throw
     this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.W = 390;
     this.H = 760;
@@ -50,6 +60,7 @@ export class Renderer {
     this.canvas.height = Math.round(H * this.dpr);
     this.computeLayout();
     this.buildBackground();
+    this.cam = { x: -1, y: -1, zoom: 0 };
   }
 
   computeLayout() {
@@ -88,7 +99,7 @@ export class Renderer {
 
   cupScreen(cup) {
     const p = this.project(cup.x, cup.z);
-    const rx = CUP_RADIUS * p.hw;
+    const rx = PHYS.CUP_TOP / PHYS.XU_M * p.hw;
     return { x: p.x, y: p.y, rx, ry: rx * 0.36, hw: p.hw };
   }
 
@@ -105,32 +116,32 @@ export class Renderer {
     g.scale(dpr, dpr);
 
     const base = g.createLinearGradient(0, 0, 0, H);
-    base.addColorStop(0, '#0b1224');
-    base.addColorStop(0.45, '#080d19');
-    base.addColorStop(1, '#04060c');
+    base.addColorStop(0, '#fff8f0');
+    base.addColorStop(0.45, '#ffe9d8');
+    base.addColorStop(1, '#fdd9b8');
     g.fillStyle = base;
     g.fillRect(0, 0, W, H);
 
     const glowPink = g.createRadialGradient(W * 0.1, H * 0.02, 0, W * 0.1, H * 0.02, W * 0.85);
-    glowPink.addColorStop(0, 'rgba(255, 61, 113, 0.2)');
-    glowPink.addColorStop(0.5, 'rgba(160, 30, 80, 0.07)');
+    glowPink.addColorStop(0, 'rgba(229, 57, 53, 0.16)');
+    glowPink.addColorStop(0.5, 'rgba(183, 28, 28, 0.06)');
     glowPink.addColorStop(1, 'rgba(0, 0, 0, 0)');
     g.fillStyle = glowPink;
     g.fillRect(0, 0, W, H * 0.75);
 
     const glowCyan = g.createRadialGradient(W * 0.94, H * 0.08, 0, W * 0.94, H * 0.08, W * 0.7);
-    glowCyan.addColorStop(0, 'rgba(56, 225, 242, 0.14)');
+    glowCyan.addColorStop(0, 'rgba(255, 214, 0, 0.18)');
     glowCyan.addColorStop(1, 'rgba(0, 0, 0, 0)');
     g.fillStyle = glowCyan;
     g.fillRect(0, 0, W, H * 0.6);
 
-    // Party bokeh
+    // Confetes estáticos (bokeh de festa)
     const rng = mulberry32(20261030);
     for (let i = 0; i < 16; i += 1) {
       const x = rng() * W;
       const y = rng() * (H * 0.55);
       const r = 2 + rng() * 8;
-      const colors = ['255, 196, 92', '255, 61, 113', '56, 225, 242', '139, 92, 255'];
+      const colors = ['229, 57, 53', '255, 214, 0', '183, 28, 28', '255, 255, 255'];
       g.save();
       g.globalAlpha = 0.1 + rng() * 0.18;
       g.fillStyle = `rgb(${colors[(rng() * colors.length) | 0]})`;
@@ -145,22 +156,22 @@ export class Renderer {
     // Back wall band + neon strip behind the table
     const wallY = Math.max(0, this.yFar - 74);
     const wall = g.createLinearGradient(0, wallY, 0, this.yFar + 40);
-    wall.addColorStop(0, 'rgba(8, 12, 22, 0)');
-    wall.addColorStop(0.6, 'rgba(16, 24, 42, 0.55)');
-    wall.addColorStop(1, 'rgba(5, 8, 14, 0.1)');
+    wall.addColorStop(0, 'rgba(255, 232, 208, 0)');
+    wall.addColorStop(0.6, 'rgba(240, 200, 168, 0.5)');
+    wall.addColorStop(1, 'rgba(255, 240, 222, 0.1)');
     g.fillStyle = wall;
     g.fillRect(0, wallY, W, 120);
 
     const strip = g.createLinearGradient(W * 0.18, 0, W * 0.82, 0);
-    strip.addColorStop(0, 'rgba(255, 61, 113, 0)');
-    strip.addColorStop(0.28, 'rgba(255, 61, 113, 0.65)');
-    strip.addColorStop(0.52, 'rgba(255, 196, 92, 0.85)');
-    strip.addColorStop(0.76, 'rgba(56, 225, 242, 0.6)');
-    strip.addColorStop(1, 'rgba(56, 225, 242, 0)');
+    strip.addColorStop(0, 'rgba(229, 57, 53, 0)');
+    strip.addColorStop(0.28, 'rgba(229, 57, 53, 0.7)');
+    strip.addColorStop(0.52, 'rgba(255, 214, 0, 0.9)');
+    strip.addColorStop(0.76, 'rgba(183, 28, 28, 0.65)');
+    strip.addColorStop(1, 'rgba(183, 28, 28, 0)');
     g.save();
     g.strokeStyle = strip;
     g.lineWidth = 2.5;
-    g.shadowColor = 'rgba(255, 120, 120, 0.55)';
+    g.shadowColor = 'rgba(255, 160, 60, 0.55)';
     g.shadowBlur = 20;
     g.beginPath();
     g.moveTo(W * 0.14, this.yFar - 42);
@@ -170,12 +181,99 @@ export class Renderer {
 
     // Floor glow under the table
     const floor = g.createRadialGradient(W / 2, H * 0.92, 0, W / 2, H * 0.92, W * 0.7);
-    floor.addColorStop(0, 'rgba(120, 60, 30, 0.16)');
+    floor.addColorStop(0, 'rgba(183, 28, 28, 0.14)');
     floor.addColorStop(1, 'rgba(0, 0, 0, 0)');
     g.fillStyle = floor;
     g.fillRect(0, H * 0.6, W, H * 0.4);
 
     this.bg = bg;
+  }
+
+  flash(strength = 0.5) {
+    if (!this.reducedMotion) this.flashAlpha = strength;
+  }
+
+  slowMo() {
+    if (!this.reducedMotion) {
+      this.timeScale = 0.35;
+      this.zoom = 1;
+    }
+  }
+
+  setHeat(v) {
+    this.heat = this.reducedMotion ? 0 : clamp(v, 0, 1);
+  }
+
+  /* =========================================================
+     EXTREME FEVER (Peggle-style)
+     ========================================================= */
+
+  startFever() {
+    if (this.reducedMotion) return;
+    this.fever = true;
+    this.feverResult = '';
+    this.feverFail = 0;
+    this.timeScale = 0.25;
+    this.zoom = 1;
+    this.heat = 1;
+  }
+
+  endFever(win, pt) {
+    if (!this.fever) return;
+    this.fever = false;
+    if (win) {
+      this.feverResult = 'win';
+      this.feverT = 0;
+      this.flash(0.65);
+      this.confetti();
+      this.confetti();
+      if (!this.reducedMotion && pt) this.goldRain(pt);
+      this.shake = this.reducedMotion ? 0 : 16;
+    } else {
+      this.feverResult = 'lose';
+      this.feverT = 0;
+      this.feverFail = 1;
+      this.timeScale = 0.4;
+      if (!this.reducedMotion) this.shake = 7;
+    }
+  }
+
+  /* chuva dourada derrapando em direção ao copo final */
+  goldRain(pt) {
+    for (let i = 0; i < 90; i += 1) {
+      this.particles.push({
+        x: rand(0, this.W),
+        y: rand(-this.H * 0.4, -10),
+        vx: rand(-70, 70),
+        vy: rand(140, 340),
+        g: 340,
+        drag: 0.998,
+        t: 0,
+        life: rand(1.4, 2.6),
+        size: rand(2, 6),
+        color: pick(['#ffd600', '#f2a900', '#fff0a8', '#ffffff']),
+        shape: 'rect',
+        spin: rand(-12, 12),
+        rot: rand(0, TAU),
+      });
+    }
+  }
+
+  /* raios elétricos nas laterais, estilo Peggle */
+  addBolt() {
+    if (this.reducedMotion) return;
+    const side = this.boltSide ? 1 : 0;
+    this.boltSide = !this.boltSide;
+    const x0 = side ? this.W : 0;
+    const pts = [];
+    let x = x0;
+    let y = rand(this.H * 0.2, this.H * 0.35);
+    for (let i = 0; i < 6; i += 1) {
+      pts.push({ x, y });
+      x += (this.W * 0.55) / 6 * (side ? -1 : 1) + rand(-14, 14);
+      y += rand(30, 70);
+    }
+    this.rings.push({ bolt: pts, t: 0, life: 0.22, color: '255, 240, 140' });
   }
 
   /* =========================================================
@@ -186,6 +284,54 @@ export class Renderer {
     this.time += dt;
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+
+    // === câmera com follow (EXTREME FEVER throw) ===
+    let camTarget = { x: this.cx, y: this.H / 2, zoom: 1 };
+    if (this.camFollow && !this.reducedMotion) {
+      const b = game.ball && game.ball.visible
+        ? this.project(game.ball.x, game.ball.z)
+        : null;
+      const cupP = game.feverCup ? this.cupScreen(game.feverCup) : null;
+      let fx;
+      let fy;
+      if (b) {
+        fx = cupP ? b.x * 0.68 + cupP.x * 0.32 : b.x;
+        fy = cupP ? b.y * 0.68 + (cupP.y + cupP.rx * 0.6) * 0.32 : b.y;
+      } else if (cupP) {
+        fx = cupP.x;
+        fy = cupP.y + cupP.rx;
+      } else {
+        fx = this.cx;
+        fy = (this.yFar + this.yNear) / 2;
+      }
+      const zoom = 2.2;
+      camTarget = {
+        x: clamp(fx, this.W / (zoom * 2) + 6, this.W - this.W / (zoom * 2) - 6),
+        y: clamp(fy, this.H / (zoom * 2), this.H - this.H / (zoom * 2)),
+        zoom,
+      };
+    }
+    if (this.cam.zoom === 0) {
+      this.cam = { x: camTarget.x, y: camTarget.y, zoom: 1 };
+    }
+    const camEase = this.camFollow ? Math.min(1, dt * 4.5) : Math.min(1, dt * 3.5);
+    this.cam.x += (camTarget.x - this.cam.x) * camEase;
+    this.cam.y += (camTarget.y - this.cam.y) * camEase;
+    this.cam.zoom += (camTarget.zoom - this.cam.zoom) * camEase;
+    if (this.cam.zoom > 1.001) {
+      ctx.translate(this.W / 2, this.H / 2);
+      ctx.scale(this.cam.zoom, this.cam.zoom);
+      ctx.translate(-this.cam.x, -this.cam.y);
+    }
+
+    // zoom dramático (câmera aproxima no slow-mo)
+    if (this.zoom > 0.001) {
+      this.zoom = Math.max(0, this.zoom - dt * 2.2);
+      const z = 1 + 0.045 * Math.sin(Math.min(1, this.zoom) * Math.PI);
+      ctx.translate(this.W / 2, this.H / 2);
+      ctx.scale(z, z);
+      ctx.translate(-this.W / 2, -this.H / 2);
+    }
 
     if (this.shake > 0.2 && !this.reducedMotion) {
       const s = this.shake;
@@ -198,16 +344,125 @@ export class Renderer {
     if (this.bg) {
       ctx.drawImage(this.bg, 0, 0, this.W, this.H);
     } else {
-      ctx.fillStyle = '#070a12';
+      ctx.fillStyle = '#fff8f0';
       ctx.fillRect(0, 0, this.W, this.H);
     }
 
     this.drawTable(game);
+    this.drawSpotlights(dt);
     this.drawCups(game, dt);
     this.drawBall(game);
     this.drawAim(game);
     this.updateEffects(dt);
     this.drawEffects();
+    this.drawOverlays(dt);
+  }
+
+  /* =========================================================
+     Spotlights girando no fundo (luz de festa)
+     ========================================================= */
+
+  drawSpotlights(dt) {
+    // desenhados depois da mesa para dar vida; são suaves e giram devagar
+    if (!this.bg || this.reducedMotion) return;
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < 2; i += 1) {
+      const ang = this.time * (0.5 + i * 0.23) + i * Math.PI;
+      const px = this.cx + Math.sin(ang) * this.W * 0.36;
+      const py = this.yFar - 30 + Math.cos(ang * 1.3) * 24;
+      const r = this.W * (0.5 + i * 0.1);
+      const g = ctx.createRadialGradient(px, py, 0, px, py, r);
+      const col = i === 0 ? '229, 57, 53' : '255, 214, 0';
+      g.addColorStop(0, `rgba(${col}, 0.10)`);
+      g.addColorStop(0.5, `rgba(${col}, 0.035)`);
+      g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, this.W, this.H * 0.7);
+    }
+    ctx.restore();
+  }
+
+  /* =========================================================
+     Overlays: flash, vinheta de streak
+     ========================================================= */
+
+  drawOverlays(dt) {
+    const ctx = this.ctx;
+    ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+
+    if (this.heat > 0.01) {
+      const pulse = 0.55 + 0.45 * Math.sin(this.time * 4.2);
+      const a = this.heat * (0.12 + 0.12 * pulse);
+      const g = ctx.createRadialGradient(
+        this.W / 2, this.H / 2, Math.min(this.W, this.H) * 0.32,
+        this.W / 2, this.H / 2, Math.max(this.W, this.H) * 0.72,
+      );
+      g.addColorStop(0, 'rgba(255, 214, 0, 0)');
+      g.addColorStop(0.75, `rgba(255, 214, 0, ${a.toFixed(3)})`);
+      g.addColorStop(1, `rgba(229, 57, 53, ${(a * 1.3).toFixed(3)})`);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, this.W, this.H);
+    }
+
+    if (this.flashAlpha > 0.005) {
+      ctx.fillStyle = `rgba(255, 255, 255, ${this.flashAlpha.toFixed(3)})`;
+      ctx.fillRect(0, 0, this.W, this.H);
+      this.flashAlpha = Math.max(0, this.flashAlpha - dt * 2.6);
+    } else {
+      this.flashAlpha = 0;
+    }
+
+    // tint dramático da FALHA no fever
+    if (this.feverFail > 0.005) {
+      ctx.fillStyle = `rgba(183, 28, 28, ${(this.feverFail * 0.16).toFixed(3)})`;
+      ctx.fillRect(0, 0, this.W, this.H);
+      const g2 = ctx.createRadialGradient(
+        this.W / 2, this.H / 2, Math.min(this.W, this.H) * 0.3,
+        this.W / 2, this.H / 2, Math.max(this.W, this.H) * 0.7,
+      );
+      g2.addColorStop(0, 'rgba(0,0,0,0)');
+      g2.addColorStop(1, `rgba(127, 16, 16, ${(this.feverFail * 0.4).toFixed(3)})`);
+      ctx.fillStyle = g2;
+      ctx.fillRect(0, 0, this.W, this.H);
+    }
+
+    // banner EXTREME FEVER / FESTA TOTAL / QUASE!
+    if (this.fever || this.feverResult) {
+      const isLose = this.feverResult === 'lose';
+      const isWin = this.feverResult === 'win';
+      const banner = isLose ? 'QUASE!' : isWin ? 'FESTA TOTAL!' : 'EXTREME FEVER!';
+      const life = isLose ? 1.2 : isWin ? 2.2 : -1; // -1 = enquanto durar o fever
+      const tt = this.feverT;
+      if (life < 0 || tt < life) {
+        const pop = Math.min(1, tt * 5);
+        const scale = (isWin ? 2.4 : 1.9) - (1 - pop) * 0.9 + (isWin || isLose ? Math.sin(tt * 5) * 0.03 : Math.sin(tt * 8) * 0.04);
+        const alpha = life < 0 ? 1 : tt > life - 0.35 ? (life - tt) / 0.35 : 1;
+        const ty = this.H * 0.24 + Math.sin(tt * 6) * 5;
+        ctx.save();
+        ctx.globalAlpha = clamp(alpha, 0, 1);
+        ctx.translate(this.W / 2, ty);
+        ctx.scale(scale * 0.62, scale * 0.62);
+        ctx.font = '900 46px "Trebuchet MS", "Segoe UI", system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.lineWidth = 9;
+        ctx.strokeStyle = 'rgba(42, 20, 20, 0.85)';
+        ctx.strokeText(banner, 0, 0);
+        const bg = ctx.createLinearGradient(0, -26, 0, 26);
+        bg.addColorStop(0, isLose ? '#b71c1c' : '#ffd600');
+        bg.addColorStop(0.5, isLose ? '#e53935' : '#ffffff');
+        bg.addColorStop(1, isLose ? '#7f1010' : '#e53935');
+        ctx.fillStyle = bg;
+        ctx.fillText(banner, 0, 0);
+        ctx.restore();
+        // raios elétricos durante o fever
+        if (!isWin && !isLose && Math.random() < 0.12) this.addBolt();
+      } else if (!this.fever) {
+        this.feverResult = '';
+      }
+    }
   }
 
   /* =========================================================
@@ -220,7 +475,7 @@ export class Renderer {
 
     // floor shadow
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    ctx.fillStyle = 'rgba(127, 16, 16, 0.22)';
     ctx.filter = 'blur(18px)';
     ctx.beginPath();
     ctx.ellipse(cx, yNear + 12, halfNear * 1.05, 26, 0, 0, TAU);
@@ -307,12 +562,12 @@ export class Renderer {
     ctx.save();
     ctx.translate(cx, ly);
     ctx.scale(1, 0.42);
-    ctx.font = `900 ${Math.round(lhw * 0.2)}px "Segoe UI", system-ui, sans-serif`;
+    ctx.font = `900 ${Math.round(lhw * 0.2)}px "Trebuchet MS", "Segoe UI", system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = 'rgba(255, 226, 190, 0.055)';
-    ctx.letterSpacing = '4px';
-    ctx.fillText('NEON PONG', 0, 0);
+    ctx.fillStyle = 'rgba(160, 60, 20, 0.1)';
+    ctx.letterSpacing = '3px';
+    ctx.fillText("SNUFFLY'S CARNIVAL", 0, 0);
     ctx.restore();
 
     ctx.restore();
@@ -332,17 +587,17 @@ export class Renderer {
     ctx.stroke(tablePath);
     ctx.restore();
 
-    // far edge neon
+    // far edge neon (fita de fita-metrica carnaval)
     ctx.save();
     const neon = ctx.createLinearGradient(cx - halfFar, 0, cx + halfFar, 0);
-    neon.addColorStop(0, 'rgba(56, 225, 242, 0)');
-    neon.addColorStop(0.35, 'rgba(56, 225, 242, 0.55)');
-    neon.addColorStop(0.65, 'rgba(255, 61, 113, 0.55)');
-    neon.addColorStop(1, 'rgba(255, 61, 113, 0)');
+    neon.addColorStop(0, 'rgba(255, 214, 0, 0)');
+    neon.addColorStop(0.35, 'rgba(255, 214, 0, 0.7)');
+    neon.addColorStop(0.65, 'rgba(229, 57, 53, 0.7)');
+    neon.addColorStop(1, 'rgba(229, 57, 53, 0)');
     ctx.strokeStyle = neon;
-    ctx.lineWidth = 2;
-    ctx.shadowColor = 'rgba(120, 220, 255, 0.5)';
-    ctx.shadowBlur = 14;
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'rgba(255, 150, 0, 0.5)';
+    ctx.shadowBlur = 12;
     ctx.beginPath();
     ctx.moveTo(cx - halfFar, yFar);
     ctx.lineTo(cx + halfFar, yFar);
@@ -352,7 +607,7 @@ export class Renderer {
     // vignette at the near edge
     const edge = ctx.createLinearGradient(0, yNear - 40, 0, yNear + 10);
     edge.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    edge.addColorStop(1, 'rgba(0, 0, 0, 0.35)');
+    edge.addColorStop(1, 'rgba(190, 60, 40, 0.24)');
     ctx.fillStyle = edge;
     ctx.fillRect(0, yNear - 40, W, 50);
 
@@ -362,7 +617,7 @@ export class Renderer {
       const bob = this.reducedMotion ? 0 : Math.sin(this.time * 1.8) * 2.4;
       this.ctx.save();
       this.ctx.globalAlpha = 0.28;
-      this.ctx.fillStyle = '#000';
+      this.ctx.fillStyle = 'rgba(127, 16, 16, 0.9)';
       this.ctx.beginPath();
       this.ctx.ellipse(p.x, p.y + 1, 9, 3, 0, 0, TAU);
       this.ctx.fill();
@@ -372,12 +627,15 @@ export class Renderer {
   }
 
   /* =========================================================
-     Cups
+     Cups — vazios, com inclinação real e tombamento animado
      ========================================================= */
 
   drawCups(game, dt) {
     const cups = game.rack || [];
-    const sorted = [...cups].sort((a, b) => b.z - a.z);
+    // desenha do fundo para a frente (profundidade); caídos por último
+    const sorted = [...cups].sort((a, b) =>
+      (a.state === 'down') - (b.state === 'down') || b.z - a.z,
+    );
     for (const cup of sorted) {
       if (cup.state === 'hit') {
         cup.anim = Math.min(1, (cup.anim || 0) + dt * 2.4);
@@ -391,29 +649,65 @@ export class Renderer {
     const ctx = this.ctx;
     const p = this.cupScreen(cup);
     const { rx, ry } = p;
+    const bodyH = rx * 1.42;
+    const down = cup.state === 'down';
+
+    // sombra no chão (vinho translúcido, coerente com fundo creme)
+    ctx.save();
+    ctx.fillStyle = 'rgba(127, 16, 16, 0.25)';
+    if (down) {
+      const spread = 1 + (cup.fallT || 0) * 1.6;
+      ctx.beginPath();
+      ctx.ellipse(
+        p.x + (cup.fallDir || 1) * rx * 0.9 * (cup.fallT || 0),
+        p.y + bodyH * 0.72,
+        rx * spread,
+        ry * 1.25,
+        0,
+        0,
+        TAU,
+      );
+    } else {
+      ctx.beginPath();
+      ctx.ellipse(p.x + rx * 0.16, p.y + bodyH * 0.86, rx * 1.02, ry * 1.25, 0, 0, TAU);
+    }
+    ctx.fill();
+    ctx.restore();
+
+    if (down) {
+      // copo tombando: rotação em torno da base + encurtamento de perspectiva
+      const t = Math.min(1, cup.fallT || 0);
+      const ease = 1 - (1 - t) * (1 - t);
+      const angle = (cup.fallDir || 1) * (Math.PI / 2) * ease;
+      const squash = lerp(1, 0.55, ease);
+      ctx.save();
+      ctx.translate(p.x, p.y + bodyH * 0.8);
+      ctx.rotate(angle);
+      ctx.scale(1, squash);
+      this.drawCupSprite(ctx, 0, -bodyH, rx, ry, bodyH, cup, down, 0);
+      ctx.restore();
+      return;
+    }
+
     const hit = cup.state === 'hit';
     const t = hit ? cup.anim || 0 : 0;
-    const alpha = 1 - t * t;
-    const sink = t * t * 34;
-    const wobble = cup.wobble ? Math.sin(this.time * 34) * cup.wobble * 3.5 : 0;
-    const x = p.x + wobble;
-    const y = p.y + sink;
-    const bodyH = rx * 1.42;
-    const tilt = hit ? Math.sin(t * Math.PI) * 0.24 : 0;
+    const alpha = hit ? 1 - t * t : 1;
+    const sink = hit ? t * t * 34 : 0;
+    const wobble = cup.wobble ? Math.sin(this.time * 30) * cup.wobble * 2.6 : 0;
+    const tilt = (cup.tilt || 0) * 0.85 + (hit ? Math.sin(t * Math.PI) * 0.24 : 0);
 
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.translate(x, y);
+    ctx.translate(p.x + wobble, p.y + sink);
     ctx.rotate(tilt);
-    ctx.translate(-x, -y);
+    this.drawCupSprite(ctx, 0, 0, rx, ry, bodyH, cup, false, 0);
+    ctx.restore();
+  }
 
-    // shadow
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.32)';
-    ctx.beginPath();
-    ctx.ellipse(x + rx * 0.16, y + bodyH * 0.86, rx * 1.02, ry * 1.25, 0, 0, TAU);
-    ctx.fill();
+  /* Desenha o copo VAZIO com origem no centro da boca em (x, y). */
+  drawCupSprite(ctx, x, y, rx, ry, bodyH, cup, down) {
 
-    // cup body
+    // corpo (tronco de cone)
     const body = new Path2D();
     body.moveTo(x - rx, y);
     body.bezierCurveTo(x - rx * 0.98, y + bodyH * 0.5, x - rx * 0.8, y + bodyH * 0.82, x - rx * 0.72, y + bodyH);
@@ -422,15 +716,15 @@ export class Renderer {
     body.closePath();
 
     const bodyGrad = ctx.createLinearGradient(x - rx, y, x + rx, y + bodyH);
-    bodyGrad.addColorStop(0, '#ff6478');
-    bodyGrad.addColorStop(0.22, '#ec2c4c');
-    bodyGrad.addColorStop(0.62, '#bd1737');
-    bodyGrad.addColorStop(0.9, '#8e0e28');
-    bodyGrad.addColorStop(1, '#760a20');
+    bodyGrad.addColorStop(0, '#f97a6d');
+    bodyGrad.addColorStop(0.22, '#ea4a44');
+    bodyGrad.addColorStop(0.62, '#e53935');
+    bodyGrad.addColorStop(0.9, '#b71c1c');
+    bodyGrad.addColorStop(1, '#7f1010');
     ctx.fillStyle = bodyGrad;
     ctx.fill(body);
 
-    // glossy stripe
+    // brilho e ranhuras do plástico
     ctx.save();
     ctx.clip(body);
     const gloss = ctx.createLinearGradient(x - rx, 0, x - rx * 0.15, 0);
@@ -450,40 +744,32 @@ export class Renderer {
     }
     ctx.restore();
 
-    // rim / opening
+    // interior VAZIO: parede interna + fundo sombreado (tons quentes)
     ctx.beginPath();
     ctx.ellipse(x, y, rx, ry, 0, 0, TAU);
-    ctx.fillStyle = '#7a1024';
+    ctx.fillStyle = '#a3272a';
     ctx.fill();
 
-    const beer = ctx.createRadialGradient(x - rx * 0.2, y - ry * 0.3, ry * 0.1, x, y, rx * 0.9);
-    beer.addColorStop(0, '#ffd27a');
-    beer.addColorStop(0.5, '#f2a63b');
-    beer.addColorStop(1, '#b96a14');
+    const inner = ctx.createRadialGradient(x, y + ry * 0.5, ry * 0.12, x, y + ry * 0.14, rx * 0.92);
+    inner.addColorStop(0, 'rgba(105, 18, 20, 0.92)');
+    inner.addColorStop(0.55, 'rgba(140, 28, 28, 0.85)');
+    inner.addColorStop(1, 'rgba(183, 28, 28, 0.7)');
     ctx.beginPath();
-    ctx.ellipse(x, y + ry * 0.1, rx * 0.82, ry * 0.78, 0, 0, TAU);
-    ctx.fillStyle = beer;
+    ctx.ellipse(x, y + ry * 0.12, rx * 0.86, ry * 0.74, 0, 0, TAU);
+    ctx.fillStyle = inner;
     ctx.fill();
 
-    // foam
-    ctx.fillStyle = 'rgba(255, 246, 220, 0.7)';
-    const foam = [
-      [-0.34, -0.05, 0.18],
-      [-0.02, -0.16, 0.2],
-      [0.3, 0.02, 0.16],
-      [0.08, 0.12, 0.12],
-    ];
-    for (const [fx, fy, fr] of foam) {
-      ctx.beginPath();
-      ctx.arc(x + fx * rx, y + fy * ry, fr * rx, 0, TAU);
-      ctx.fill();
-    }
+    // fundo do copo vazio, lá no fundo do cone
+    ctx.beginPath();
+    ctx.ellipse(x, y + ry * 0.52, rx * 0.42, ry * 0.24, 0, 0, TAU);
+    ctx.fillStyle = 'rgba(80, 10, 12, 0.6)';
+    ctx.fill();
 
-    // rim highlight
+    // borda (rim) amarela de festa
     ctx.beginPath();
     ctx.ellipse(x, y, rx, ry, 0, 0, TAU);
-    ctx.strokeStyle = 'rgba(255, 226, 226, 0.75)';
-    ctx.lineWidth = Math.max(1.4, rx * 0.11);
+    ctx.strokeStyle = '#ffe14d';
+    ctx.lineWidth = Math.max(1.6, rx * 0.13);
     ctx.stroke();
 
     ctx.beginPath();
@@ -491,15 +777,13 @@ export class Renderer {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
     ctx.lineWidth = 1;
     ctx.stroke();
-
-    ctx.restore();
   }
 
   /* =========================================================
      Ball
      ========================================================= */
 
-  drawBallSprite(x, y, r, onFire) {
+  drawBallSprite(x, y, r, onFire, spin = 0) {
     const ctx = this.ctx;
     ctx.save();
     if (onFire) {
@@ -515,6 +799,21 @@ export class Renderer {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, TAU);
     ctx.fill();
+    // contorno ink para contraste no fundo creme
+    ctx.strokeStyle = 'rgba(42, 20, 20, 0.45)';
+    ctx.lineWidth = Math.max(0.8, r * 0.12);
+    ctx.stroke();
+    ctx.restore();
+
+    // costura da bola girando (espin)
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(spin % TAU);
+    ctx.strokeStyle = 'rgba(150, 140, 120, 0.55)';
+    ctx.lineWidth = Math.max(0.8, r * 0.09);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, r * 0.94, r * 0.34, 0, 0, TAU);
+    ctx.stroke();
     ctx.restore();
 
     ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
@@ -528,15 +827,16 @@ export class Renderer {
     if (!ball.visible) return;
     const ctx = this.ctx;
     const p = this.project(ball.x, ball.z);
-    const height = ball.h || 0;
-    const r = 8.4 + Math.min(2, height / 160);
-    const sy = p.y - height;
-    const shadowScale = clamp(1 - height / 420, 0.35, 1);
+    // escala isométrica: px por metro derivado da perspectiva da mesa
+    const pxPerM = p.hw / PHYS.XU_M;
+    const r = Math.max(4, PHYS.BALL_RADIUS * pxPerM);
+    const sy = p.y - (ball.h || 0) * pxPerM;
+    const shadowScale = clamp(1 - (ball.h || 0) / 0.45, 0.35, 1);
 
     // shadow
     ctx.save();
     ctx.globalAlpha = 0.3 * shadowScale;
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = 'rgba(127, 16, 16, 0.9)';
     ctx.beginPath();
     ctx.ellipse(p.x, p.y, r * 1.05 * shadowScale, r * 0.34 * shadowScale, 0, 0, TAU);
     ctx.fill();
@@ -547,17 +847,17 @@ export class Renderer {
       for (let i = 0; i < ball.trail.length; i += 1) {
         const t = ball.trail[i];
         const tp = this.project(t.x, t.z);
-        const a = (i / ball.trail.length) * 0.24;
+        const a = (i / ball.trail.length) * (this.fever ? 0.55 : 0.24);
         ctx.globalAlpha = a;
-        ctx.fillStyle = '#fff6df';
+        ctx.fillStyle = this.fever ? (i % 2 ? '#ffd600' : '#e53935') : '#fff6df';
         ctx.beginPath();
-        ctx.arc(tp.x, tp.y - t.h, r * (0.35 + (i / ball.trail.length) * 0.5), 0, TAU);
+        ctx.arc(tp.x, tp.y - t.h * (tp.hw / PHYS.XU_M), r * (0.35 + (i / ball.trail.length) * 0.5), 0, TAU);
         ctx.fill();
       }
       ctx.globalAlpha = 1;
     }
 
-    this.drawBallSprite(p.x, sy, r, Boolean(ball.fire));
+    this.drawBallSprite(p.x, sy, r, Boolean(ball.fire || this.fever), ball.spin || 0);
   }
 
   /* =========================================================
@@ -570,22 +870,20 @@ export class Renderer {
     const ctx = this.ctx;
     const target = this.project(aim.x, aim.z);
     const cpu = game.mode === 'cpu' && game.turn === 1;
-    const accent = cpu ? '255, 61, 113' : '255, 196, 92';
+    const accent = cpu ? '183, 28, 28' : '255, 214, 0';
 
-    // predicted arc
-    const arc = 90 + aim.z * 80;
+    // trajetória prevista (simulada pela MESMA física do arremesso)
     ctx.save();
-    for (let i = 1; i <= 15; i += 1) {
-      const t = i / 15;
-      const x = lerp(0, aim.x, t);
-      const z = lerp(0.03, aim.z, t);
-      const p = this.project(x, z);
-      const h = 4 * arc * t * (1 - t);
-      const rr = 1.4 + t * 1.8;
-      ctx.globalAlpha = 0.1 + t * 0.5;
+    const pts = game.previewPoints || [];
+    for (let i = 0; i < pts.length; i += 1) {
+      const t = pts[i];
+      const pp = this.project(t.x, t.z);
+      const hpx = t.h * (pp.hw / PHYS.XU_M);
+      const prog = i / Math.max(1, pts.length - 1);
+      ctx.globalAlpha = 0.12 + prog * 0.55;
       ctx.fillStyle = `rgba(${accent}, 0.95)`;
       ctx.beginPath();
-      ctx.arc(p.x, p.y - h, rr, 0, TAU);
+      ctx.arc(pp.x, pp.y - hpx, 1.3 + prog * 1.9, 0, TAU);
       ctx.fill();
     }
     ctx.restore();
@@ -679,14 +977,15 @@ export class Renderer {
         t: 0,
         life: rand(0.45, 0.9),
         size: rand(1.4, 4),
-        color: pick(['#ffd166', '#ffb03a', '#fff1cf', '#ff8a3d', '#f7d9a0']),
+        color: pick(['#ffd600', '#f2a900', '#ffffff', '#e53935', '#fff0a8']),
         shape: 'circle',
         spin: 0,
         rot: 0,
       });
     }
-    this.rings.push({ x, y, t: 0, life: 0.5, r0: 6, r1: 46, color: '255, 210, 130' });
-    this.rings.push({ x, y, t: 0, life: 0.65, r0: 2, r1: 28, color: '255, 255, 255' });
+    this.rings.push({ x, y, t: 0, life: 0.5, r0: 14, r1: 62, color: '255, 214, 0' });
+    this.rings.push({ x, y, t: 0, life: 0.65, r0: 2, r1: 40, color: '255, 255, 255' });
+    this.rings.push({ x, y, t: 0, life: 0.8, r0: 4, r1: 90, color: '229, 57, 53' });
   }
 
   bounce(x, y) {
@@ -711,13 +1010,13 @@ export class Renderer {
     }
   }
 
-  float(x, y, text, color = '#ffd166') {
+  float(x, y, text, color = '#f2a900') {
     this.floaters.push({ x, y, text, color, t: 0, life: 0.95 });
   }
 
   confetti() {
     if (this.reducedMotion) return;
-    const colors = ['#ff3d71', '#ffc45c', '#38e1f2', '#8b5cff', '#4ade80', '#fff1cf'];
+    const colors = ['#e53935', '#ffd600', '#b71c1c', '#fff1bf', '#f2a900', '#ffffff'];
     for (let i = 0; i < 110; i += 1) {
       this.particles.push({
         x: rand(0, this.W),
@@ -739,6 +1038,17 @@ export class Renderer {
 
   updateEffects(dt) {
     const max = MAX_PARTICLES;
+    // EXTREME FEVER: tempo travado em 0.25 até o desfecho
+    if (this.fever) {
+      this.timeScale = Math.min(this.timeScale, 0.25);
+      this.heat = Math.max(this.heat, 0.9);
+      this.feverT += dt;
+    } else if (this.timeScale < 1) {
+      // slow-mo retorna suavemente ao normal
+      this.timeScale = Math.min(1, this.timeScale + dt * 2.6);
+    }
+    if (this.feverResult) this.feverT += dt;
+    if (this.feverFail > 0) this.feverFail = Math.max(0, this.feverFail - dt * 0.8);
     for (const p of this.particles) {
       p.t += dt;
       p.vy += p.g * dt;
@@ -768,6 +1078,22 @@ export class Renderer {
 
     for (const r of this.rings) {
       const p = r.t / r.life;
+      const ctx2 = ctx;
+      if (r.bolt) {
+        // raio elétrico (Peggle lightning)
+        ctx2.save();
+        ctx2.globalAlpha = (1 - p) * 0.95;
+        ctx2.strokeStyle = `rgb(${r.color})`;
+        ctx2.lineWidth = 2.4;
+        ctx2.shadowColor = 'rgba(255, 214, 0, 0.9)';
+        ctx2.shadowBlur = 12;
+        ctx2.beginPath();
+        ctx2.moveTo(r.bolt[0].x, r.bolt[0].y);
+        for (const seg of r.bolt.slice(1)) ctx2.lineTo(seg.x, seg.y);
+        ctx2.stroke();
+        ctx2.restore();
+        continue;
+      }
       const radius = lerp(r.r0, r.r1, p);
       ctx.save();
       ctx.globalAlpha = (1 - p) * 0.7;
@@ -804,11 +1130,11 @@ export class Renderer {
       ctx.globalAlpha = clamp(alpha, 0, 1);
       ctx.translate(f.x, f.y);
       ctx.scale(scale, scale);
-      ctx.font = '800 14px "Segoe UI", system-ui, sans-serif';
+      ctx.font = '800 14px "Trebuchet MS", "Segoe UI", system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.lineWidth = 3;
-      ctx.strokeStyle = 'rgba(5, 8, 15, 0.75)';
+      ctx.strokeStyle = 'rgba(42, 20, 20, 0.7)';
       ctx.strokeText(f.text, 0, 0);
       ctx.fillStyle = f.color;
       ctx.fillText(f.text, 0, 0);

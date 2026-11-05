@@ -134,9 +134,43 @@ export class AudioEngine {
         break;
 
       case 'splash':
-        this._noise({ dur: 0.34, gain: 0.18, type: 'lowpass', freq: 2600, slideTo: 600 });
-        this._tone(170, { type: 'sine', dur: 0.26, gain: 0.16, slideTo: 58 });
-        this._tone(880, { type: 'triangle', dur: 0.12, gain: 0.06, delay: 0.02, slideTo: 420 });
+        // bola batendo no fundo de um copo PLÁSTICO VAZIO (batida seca + chacoalho)
+        this._tone(260, { type: 'triangle', dur: 0.09, gain: 0.14, slideTo: 130 });
+        this._tone(520, { type: 'sine', dur: 0.07, gain: 0.06, delay: 0.015 });
+        this._noise({ dur: 0.14, gain: 0.09, type: 'bandpass', freq: 1800, q: 2.2 });
+        this._tone(330, { type: 'triangle', dur: 0.1, gain: 0.07, delay: 0.09, slideTo: 240 });
+        break;
+
+      case 'fanfare':
+        // jingle curto de carnaval quando o copo é feito
+        [523, 659, 784, 1047].forEach((f, i) => {
+          this._tone(f, { type: 'triangle', dur: 0.14, gain: 0.08, delay: 0.02 + i * 0.055 });
+        });
+        break;
+
+      case 'fever':
+        // tensão crescente do EXTREME FEVER (sobe a escala e cobra Suspense)
+        this._tone(220, { type: 'triangle', dur: 0.5, gain: 0.1, slideTo: 330 });
+        this._tone(277, { type: 'sine', dur: 0.7, gain: 0.08, delay: 0.15 });
+        this._tone(370, { type: 'sine', dur: 0.4, gain: 0.09, slideTo: 415, delay: 0.4 });
+        this._noise({ dur: 1.1, gain: 0.05, type: 'lowpass', freq: 500, slideTo: 1800 });
+        break;
+
+      case 'feverWin':
+        // vitória do fever: fanfarra explosiva de carnaval
+        [523, 659, 784, 1047, 1319].forEach((f, i) => {
+          this._tone(f, { type: 'triangle', dur: 0.24, gain: 0.12, delay: i * 0.06 });
+        });
+        this._tone(1568, { type: 'sine', dur: 0.7, gain: 0.1, delay: 0.32 });
+        this._noise({ dur: 0.8, gain: 0.1, type: 'bandpass', freq: 2200, q: 1.4 });
+        break;
+
+      case 'feverLose':
+        // drama da falha: sopro descendente triste + clunk seco
+        this._tone(880, { type: 'triangle', dur: 0.55, gain: 0.11, slideTo: 330 });
+        this._tone(220, { type: 'sine', dur: 0.4, gain: 0.13, delay: 0.4, slideTo: 110 });
+        this._tone(415, { type: 'sine', dur: 0.9, gain: 0.07, delay: 0.9, slideTo: 384 });
+        this._noise({ dur: 0.3, gain: 0.05, type: 'lowpass', freq: 900 });
         break;
 
       case 'turn':

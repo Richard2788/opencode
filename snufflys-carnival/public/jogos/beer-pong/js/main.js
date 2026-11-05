@@ -51,18 +51,18 @@ canvas.addEventListener('pointerdown', (event) => {
     /* ignore */
   }
   ui.hideHint();
-  game.pointerDown(point.x, point.y, event.pointerId);
+  game.pointerDown(point.x, point.y, event.pointerId, event.pointerType);
 });
 
 canvas.addEventListener('pointermove', (event) => {
   if (!game.aim.active) return;
   const point = localPoint(event);
-  game.pointerMove(point.x, point.y, event.pointerId);
+  game.pointerMove(point.x, point.y, event.pointerId, event.pointerType);
 });
 
 canvas.addEventListener('pointerup', (event) => {
   const point = localPoint(event);
-  game.pointerUp(point.x, point.y, event.pointerId);
+  game.pointerUp(point.x, point.y, event.pointerId, event.pointerType, event.pointerType);
   try {
     canvas.releasePointerCapture(event.pointerId);
   } catch {
@@ -127,7 +127,8 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
   last = now;
-  game.update(dt);
+  // slow-mo: o renderer pode "segurar" o tempo (rim/etc.)
+  game.update(dt * (renderer.timeScale ?? 1));
   renderer.render(game, dt);
   requestAnimationFrame(frame);
 }

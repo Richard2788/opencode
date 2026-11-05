@@ -109,6 +109,18 @@ export function initUI({ store, audio, game }) {
     const practice = data.mode === 'practice';
     const cpu = data.mode === 'cpu';
 
+    // pop nos contadores quando muda o placar
+    const prev = updateHud._prev || (updateHud._prev = {});
+    for (const [node, value] of [[el.count1, data.cups[0]], [el.count2, data.cups[1]]]) {
+      const key = node.id;
+      if (prev[key] !== undefined && prev[key] !== value && !node.hidden) {
+        node.classList.remove('pop');
+        void node.offsetWidth;
+        node.classList.add('pop');
+      }
+      prev[key] = value;
+    }
+
     if (practice) {
       el.name1.textContent = 'Precisão';
       el.count1.textContent = `${data.accuracy}%`;
