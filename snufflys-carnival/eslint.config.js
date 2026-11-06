@@ -31,7 +31,7 @@ module.exports = [
     },
   },
   {
-    files: ['server/**/*.js', 'public/js/**/*.js', 'public/jogos/**/*.js'],
+    files: ['server/**/*.js', 'tests/**/*.js', 'public/js/**/*.js', 'public/jogos/**/*.js'],
     ignores: ['public/jogos/beer-pong/js/**'],
     languageOptions: {
       ecmaVersion: 2022,

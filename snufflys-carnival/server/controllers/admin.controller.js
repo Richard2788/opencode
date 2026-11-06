@@ -2,13 +2,46 @@
 const crypto = require('crypto');
 const Contact = require('../models/contact.model');
 
-/** Token de sessão derivado da senha (não expõe a senha no cookie). */
+const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12h
+
+/**
+ * Sessões emitidas: token aleatório → expiry. Viver em memória por instância
+ * (suficiente para o Render Free, single instance); logout invalida o token.
+ */
+const sessions = new Map();
+
 function sessionToken() {
-  return crypto
-    .createHash('sha256')
-    .update(`snuffly-admin:${process.env.ADMIN_PASS || ''}`)
-    .digest('hex');
+  const token = crypto.randomBytes(32).toString('hex');
+  sessions.set(token, Date.now() + SESSION_TTL_MS);
+  sweepSessions();
+  return token;
 }
+
+function isValidSession(token) {
+  const expiry = sessions.get(String(token || ''));
+  if (!expiry) return false;
+  if (expiry < Date.now()) {
+    sessions.delete(token);
+    return false;
+  }
+  return true;
+}
+
+function destroySession(token) {
+  sessions.delete(String(token || ''));
+}
+
+// Remove sessões expiradas periodicamente (evita crescimento do Map)
+function sweepSessions() {
+  if (sessions.size < 100) return;
+  const now = Date.now();
+  for (const [token, expiry] of sessions) {
+    if (expiry < now) sessions.delete(token);
+  }
+}
+
+exports.isValidSession = isValidSession;
+
 
 function escapeHTML(str) {
   return String(str).replace(/[&<>"']/g, (c) => (
@@ -63,7 +96,9 @@ exports.loginPage = (_req, res) => {
       <form method="POST" action="/admin/login">
         <input type="password" name="senha" placeholder="Senha do painel" required autofocus />
         <button class="btn" type="submit">Entrar</button>
-        <p class="err">${res.locals.loginError || ''}</p>
+        <p class="err">
+          ${res.locals.loginError ? `🚫 ${escapeHTML(res.locals.loginError)}` : ''}
+        </p>
       </form>
     </div>`));
 };
@@ -75,7 +110,8 @@ exports.login = (req, res) => {
     res.cookie('snuffly_admin', sessionToken(), {
       httpOnly: true,
       sameSite: 'lax',
-      maxAge: 12 * 60 * 60 * 1000, // 12h
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: SESSION_TTL_MS,
     });
     return res.redirect('/admin/contatos');
   }
@@ -84,7 +120,9 @@ exports.login = (req, res) => {
   exports.loginPage(req, res);
 };
 
+// Logout via POST (state change por GET era suscetível a CSRF de logout)
 exports.logout = (req, res) => {
+  destroySession(req.cookies.snuffly_admin);
   res.clearCookie('snuffly_admin');
   res.redirect('/admin/login');
 };
@@ -108,7 +146,9 @@ exports.listPage = async (req, res, next) => {
       <header>
         <h1>📬 Mensagens do "Fale com a gente"</h1>
         <span class="count">${mensagens.length} mensagem(ns)</span>
-        <a class="ghost" href="/admin/logout">Sair</a>
+        <form method="POST" action="/admin/logout" style="display:inline">
+          <button class="btn" type="submit">Sair</button>
+        </form>
       </header>
       <a class="back" href="/">← Voltar ao site</a>
       <main>${itens}</main>`));

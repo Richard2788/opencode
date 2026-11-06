@@ -59,10 +59,15 @@ npm start
 ## Qualidade de código
 
 ```bash
-npm run lint        # ESLint (server + front JS)
+npm run lint        # ESLint (server + testes + front JS)
 npm run format      # Prettier --write
 npm run format:check
+npm test            # node:test + supertest (unitários + API)
 ```
+
+Os testes unitários rodam sem banco; os testes de integração usam `DATABASE_URL` se
+disponível (sem conexão, são pulados com aviso). Na CI (`.github/workflows/ci.yml`)
+sobe um PostgreSQL de serviço, roda `db:init --seed` e depois o lint + testes.
 
 ## Estrutura pronta para os jogos
 
@@ -108,5 +113,3 @@ na hora no seu Telegram/Discord, além de ficar salvo no banco.
 - `snuffly.playerName` — nome do jogador usado no ranking dos jogos.
 - `snuffly.pendingScores.<jogo>` — pontuações feitas offline, enviadas depois.
 - `snuffly.game.adivinha` / `hack-torre-copos.v4` — placar e preferências de cada jogo.
-
-Session ID: ses_e860bf3e5ffeJMCDrwtGD5GD76

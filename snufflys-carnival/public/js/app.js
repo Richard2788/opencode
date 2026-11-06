@@ -101,18 +101,32 @@
   }
 
   /* ---------------- Vitrine de prêmios ---------------- */
+  // Escapa entidades HTML (defesa extra contra XSS em dados futuros da API)
+  function escapeHTML(str) {
+    return String(str).replace(/[&<>"']/g, (c) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+  }
+
+  // Só aceita URLs http(s) para imagens — bloqueia javascript:, data: (não-imagem) etc.
+  function safeImageURL(url) {
+    const s = String(url || '').trim();
+    return /^https?:\/\//i.test(s) ? escapeHTML(s) : '';
+  }
+
   function prizeCardHTML(p, isFav, isNew) {
-    const art = p.image_url
-      ? `<img src="${p.image_url}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover" />`
+    const img = safeImageURL(p.image_url);
+    const art = img
+      ? `<img src="${img}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover" />`
       : p.emoji || '🧸';
     return `
       <div class="prize-art" aria-hidden="true">${art}</div>
       <div class="prize-body">
-        <span class="prize-type">${p.type || 'Prêmio'}</span>
-        <h3>${p.name}${isNew ? ' <span title="Novidade">✨</span>' : ''}</h3>
-        <p>${p.description || ''}</p>
-        ${p.rarity ? `<span class="prize-rarity rarity-${p.rarity}">Raridade: ${p.rarity}</span>` : ''}
-        <button class="btn-fav" aria-pressed="${isFav}" aria-label="${isFav ? 'Remover' : 'Marcar'} &quot;${p.name}&quot; ${isFav ? 'dos favoritos' : 'como favorito'}" data-id="${p.id}">
+        <span class="prize-type">${escapeHTML(p.type || 'Prêmio')}</span>
+        <h3>${escapeHTML(p.name)}${isNew ? ' <span title="Novidade">✨</span>' : ''}</h3>
+        <p>${escapeHTML(p.description || '')}</p>
+        ${p.rarity ? `<span class="prize-rarity rarity-${escapeHTML(p.rarity)}">Raridade: ${escapeHTML(p.rarity)}</span>` : ''}
+        <button class="btn-fav" aria-pressed="${isFav}" aria-label="${escapeHTML(`${isFav ? 'Remover' : 'Marcar'} "${p.name}" ${isFav ? 'dos favoritos' : 'como favorito'}`)}" data-id="${Number(p.id)}">
           ${isFav ? '❤️ Favorito' : '🤍 Favoritar'}
         </button>
       </div>`;

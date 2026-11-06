@@ -19,7 +19,8 @@ const needsSsl = /sslmode=(require|verify-ca|verify-full)/.test(connectionString
 
 const pool = new Pool({
   connectionString,
-  ssl: needsSsl ? { rejectUnauthorized: false } : false,
+  // Verifica o certificado do servidor (https://api.render.com usa CA pública)
+  ssl: needsSsl ? { rejectUnauthorized: true } : false,
 });
 
 module.exports = pool;

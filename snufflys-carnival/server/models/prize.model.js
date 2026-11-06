@@ -2,6 +2,17 @@
 const pool = require('../db');
 
 const FIELDS = 'id, name, type, description, rarity, emoji, image_url, created_at';
+
+/** Só expõe image_url http(s) — dados suspeitos viram null (defesa extra contra XSS). */
+function safeImageUrl(url) {
+  const s = String(url || '').trim();
+  return /^https?:\/\//i.test(s) ? s : null;
+}
+
+function withSafeImage(row) {
+  if (!row) return row;
+  return { ...row, image_url: safeImageUrl(row.image_url) };
+}
 const TYPES = ['boneco', 'arma', 'acessorio'];
 const SORTS = {
   recent: 'created_at DESC',
@@ -60,7 +71,7 @@ class Prize {
       params
     );
 
-    return { items: rows, total, page: safePage, limit: safeLimit, pages: totalPages };
+    return { items: rows.map(withSafeImage), total, page: safePage, limit: safeLimit, pages: totalPages };
   }
 
   static async featured(limit = 3) {
@@ -71,7 +82,7 @@ class Prize {
         LIMIT $1`,
       [limit]
     );
-    return rows;
+    return rows.map(withSafeImage);
   }
 
   static async findByType(type) {
@@ -82,8 +93,10 @@ class Prize {
         ORDER BY created_at DESC`,
       [type]
     );
-    return rows;
+    return rows.map(withSafeImage);
   }
 }
 
 module.exports = Prize;
+// Exposto para testes (validação de URL é lógica pura)
+module.exports.safeImageUrl = safeImageUrl;

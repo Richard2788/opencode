@@ -3,7 +3,7 @@
    - Cache-first com atualização em background para estáticos
    - Network-first para a API
    - Fallback offline.html para navegações sem rede            */
-const CACHE = 'snuffly-v7';
+const CACHE = 'snuffly-v8';
 const ASSETS = [
   '/',
   '/index.html',
@@ -79,7 +79,8 @@ self.addEventListener('fetch', (e) => {
   if (request.method !== 'GET') return;
 
   // API: network-first, cai para o cache e por fim para um 503 JSON
-  if (request.url.includes('/api/')) {
+  // (compara apenas o pathname — URLs externas que só CONTENHAM "/api/" não devem casar)
+  if (new URL(request.url).pathname.startsWith('/api/')) {
     e.respondWith(
       fetch(request)
         .then((res) => {

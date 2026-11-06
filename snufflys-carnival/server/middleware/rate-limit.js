@@ -1,6 +1,15 @@
 /**
  * Rate limit simples em memória (sem dependências externas).
  * Janela fixa por IP — suficiente para o escopo do projeto.
+ *
+ * LIMITAÇÕES (aceitas no escopo do Render Free, instância única):
+ * - Counters vivem em memória: NÃO compartilhados entre múltiplas
+ *   instâncias/processos (cada uma teria seu próprio limite).
+ * - Perde o estado em restart.
+ * - `req.ip` depende de `trust proxy` estar correto no ambiente de deploy
+ *   (no Render está `trust proxy 1`; em ambiente próprio sob proxy reverso
+ *   lembre-se de ajustar, senão o IP pode vir do proxy e concentrar limites).
+ * Para multi-instância, migrar para um store compartilhado (ex.: Redis).
  */
 function rateLimit({
   windowMs = 10 * 60 * 1000,

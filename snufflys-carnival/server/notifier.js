@@ -14,11 +14,19 @@ async function postJSON(url, body) {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 
+/** Neutraliza @everyone/@here e menções de Discord/Telegram no texto. */
+function sanitizeForWebhook(text) {
+  return String(text)
+    .replace(/@everyone|@here/g, '@\u200b$&')
+    .replace(/<@\w+>/g, '“menção removida”');
+}
+
 /** Envia a notificação de novo contato. Falha NÃO derruba a requisição. */
 async function notifyContact({ nome, email, mensagem }) {
-  const text =
+  const text = sanitizeForWebhook(
     `🎪 Novo contato no site!\n` +
-    `👤 ${nome} <${email}>\n\n${mensagem}`;
+      `👤 ${nome} <${email}>\n\n${mensagem}`
+  );
   const results = [];
 
   if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
@@ -36,7 +44,11 @@ async function notifyContact({ nome, email, mensagem }) {
 
   if (DISCORD_WEBHOOK_URL) {
     try {
-      await postJSON(DISCORD_WEBHOOK_URL, { content: text });
+      await postJSON(DISCORD_WEBHOOK_URL, {
+        content: text,
+        // extra: o Discord também ignora travessões/pings por esta opção
+        allowed_mentions: { parse: [] },
+      });
       results.push('discord:ok');
     } catch (err) {
       console.error('[notifier] Discord falhou:', err.message);
@@ -47,4 +59,4 @@ async function notifyContact({ nome, email, mensagem }) {
   return results;
 }
 
-module.exports = { notifyContact };
+module.exports = { notifyContact, sanitizeForWebhook };

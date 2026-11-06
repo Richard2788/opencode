@@ -273,7 +273,6 @@ export class BallSim {
   collideCup(cs, r) {
     const p = this.p;
     const v = this.v;
-    const { cup } = cs;
     const RT = PHYS.CUP_TOP;
     const HC = PHYS.CUP_HEIGHT;
     const dx = p[0] - cs.cx;

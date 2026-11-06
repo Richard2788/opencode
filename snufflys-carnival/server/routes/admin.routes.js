@@ -9,16 +9,11 @@ router.use(express.urlencoded({ extended: false }));
 
 router.get('/login', admin.loginPage);
 router.post('/login', rateLimit({ windowMs: 10 * 60 * 1000, max: 10, message: 'Muitas tentativas. Aguarde alguns minutos.' }), admin.login);
-router.get('/logout', admin.logout);
+router.post('/logout', admin.logout);
 
-// Middleware de proteção: sem cookie válido, manda para o login
+// Middleware de proteção: sem sessão válida, manda para o login
 router.use((req, res, next) => {
-  const crypto = require('crypto');
-  const expected = crypto
-    .createHash('sha256')
-    .update(`snuffly-admin:${process.env.ADMIN_PASS || ''}`)
-    .digest('hex');
-  if (req.cookies.snuffly_admin === expected) return next();
+  if (admin.isValidSession(req.cookies.snuffly_admin)) return next();
   res.redirect('/admin/login');
 });
 

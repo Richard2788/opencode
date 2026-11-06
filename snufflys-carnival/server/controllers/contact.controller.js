@@ -2,16 +2,21 @@
 const Contact = require('../models/contact.model');
 const { notifyContact } = require('../notifier');
 
-/** Remove tags/ângulos (evita XSS armazenado) e limita tamanho. */
+/** Remove tags/ângulos, caracteres de controle e sintaxe de menções
+ *  (evita XSS armazenado e injeção em webhooks) e limita tamanho. */
 function clean(value, max) {
   return String(value || '')
-    .replace(/[<>]/g, '')
+    .replace(/<@\w+>/g, '') // menções de Discord/Telegram (<@123456>)
+    .replace(/[<>]/g, '') // tags/ângulos
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, ' ') // controle (mantém \n e \t)
     .trim()
     .slice(0, max);
 }
 
-exports.create = async (req, res, next) => {
-  try {
+// Exposto para testes (sanitização é lógica pura)
+exports.clean = clean;
+
+exports.create = async (req, res, next) => {  try {
     const { nome, email, mensagem } = req.body || {};
 
     const erros = [];
