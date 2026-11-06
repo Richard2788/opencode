@@ -47,9 +47,10 @@
   }
 
   function escapeHTML(str) {
-    return String(str).replace(/[&<>"']/g, (c) => (
-      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
-    ));
+    return String(str).replace(
+      /[&<>"']/g,
+      (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+    );
   }
 
   /** Ranking via API — mostra Top 10 do jogo; fallback: mensagem simples. */

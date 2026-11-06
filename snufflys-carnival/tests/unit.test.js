@@ -62,3 +62,54 @@ describe('prize.model.safeImageUrl', () => {
     assert.equal(Prize.safeImageUrl(undefined), null);
   });
 });
+
+describe('score.controller.validaPartida (anti-cheat)', () => {
+  const { validaPartida } = require('../server/controllers/score.controller');
+
+  test('aceita partida plausível', () => {
+    assert.equal(validaPartida({ game: 'tomba-copos', player: 'ana', points: 450 }), null);
+  });
+
+  test('recusa jogo desconhecido', () => {
+    assert.match(validaPartida({ game: 'nao-existe', player: 'a', points: 1 }), /Jogo inválido/);
+  });
+
+  test('recusa pontos acima do teto do jogo', () => {
+    assert.match(
+      validaPartida({ game: 'tomba-copos', player: 'beto', points: 99999 }),
+      /entre 0 e 2000/
+    );
+    assert.match(
+      validaPartida({ game: 'hack-torre-copos', player: 'carla', points: 50000 }),
+      /entre 0 e 31000/
+    );
+  });
+
+  test('recusa pontos negativos e não inteiros', () => {
+    assert.ok(validaPartida({ game: 'cup-pong', player: 'duda', points: -1 }));
+    assert.ok(validaPartida({ game: 'cup-pong', player: 'duda', points: 10.5 }));
+  });
+
+  test('recusa jogador vazio', () => {
+    assert.match(validaPartida({ game: 'cup-pong', player: '  ', points: 10 }), /nome/);
+  });
+
+  test('recusa reenvio do mesmo jogador+jogo em menos de 15s', () => {
+    const nome = 'reenvio-teste';
+    assert.equal(validaPartida({ game: 'tomba-copos', player: nome, points: 100 }), null);
+    assert.match(validaPartida({ game: 'tomba-copos', player: nome, points: 200 }), /15 segundos/);
+  });
+
+  test('mesmo player em jogos diferentes é independente', () => {
+    const nome = 'jogos-distintos';
+    assert.equal(validaPartida({ game: 'tomba-copos', player: nome, points: 10 }), null);
+    assert.equal(validaPartida({ game: 'cup-pong', player: nome, points: 10 }), null);
+  });
+
+  test('catálogo tem maxPoints definido para os 4 jogos', () => {
+    const Game = require('../server/models/game.model');
+    for (const g of Game.all()) {
+      assert.ok(Number.isInteger(g.maxPoints) && g.maxPoints > 0, g.id);
+    }
+  });
+});

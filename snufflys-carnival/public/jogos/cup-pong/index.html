@@ -13,7 +13,7 @@
   <link rel="apple-touch-icon" href="/icons/icon-180.png">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-game-id="cup-pong">
   <svg class="svg-sprite" aria-hidden="true" focusable="false">
     <symbol id="i-cup" viewBox="0 0 24 24">
       <path d="M6.2 4h11.6l-1.5 16.2a1.4 1.4 0 0 1-1.4 1.3H9.1a1.4 1.4 0 0 1-1.4-1.3L6.2 4Z" fill="currentColor" opacity=".22"/>
@@ -141,16 +141,16 @@
           <svg class="icon"><use href="#i-download"/></svg> Instalar aplicativo
         </button>
 
+        <section class="panel ranking-bp" aria-label="Ranking global">
+          <h3>🏆 Ranking — Top 10</h3>
+          <div id="gameRanking" aria-live="polite"><p class="muted small">Carregando ranking…</p></div>
+        </section>
+
         <nav class="menu-links" aria-label="Menu">
           <a class="text-btn" href="/jogos.html">
             <svg class="icon"><use href="#i-back"/></svg> Voltar aos jogos
           </a>
         </nav>
-
-        <section class="panel ranking-bp" aria-label="Ranking global">
-          <h3>🏆 Ranking — Top 10</h3>
-          <div id="gameRanking" aria-live="polite"><p class="muted small">Carregando ranking…</p></div>
-        </section>
 
         <p class="menu-foot">Bola de verdade, pura diversão<br><span>Feito para jogar no celular</span></p>
       </div>
@@ -293,7 +293,7 @@
     </section>
   </div>
 
-  <script src="scores.js" defer></script>
+  <script src="../scores-comum.js" defer></script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

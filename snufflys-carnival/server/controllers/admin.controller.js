@@ -3,12 +3,43 @@ const crypto = require('crypto');
 const Contact = require('../models/contact.model');
 
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12h
+const CSRF_COOKIE = 'snuffly_csrf';
+const CSRF_TTL_MS = 60 * 60 * 1000; // 1h
 
 /**
  * Sessões emitidas: token aleatório → expiry. Viver em memória por instância
  * (suficiente para o Render Free, single instance); logout invalida o token.
  */
 const sessions = new Map();
+
+/**
+ * Token CSRF (padrão double-submit): um token aleatório vai em um cookie
+ * (qualquer valor serve, pois exigimos que campo do formulário == cookie).
+ * `sameSite: lax` + verificação cookie↔campo impedem login/logout forjados
+ * por outro site (CSRF de login e de logout).
+ */
+function novoCSRF() {
+  return crypto.randomBytes(24).toString('hex');
+}
+
+function emitirCSRF(res) {
+  const token = novoCSRF();
+  res.cookie(CSRF_COOKIE, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: CSRF_TTL_MS,
+  });
+  return token;
+}
+
+/** Igualdade em tempo constante entre dois segredos de tamanho qualquer. */
+function igualEmTempoConstante(a, b) {
+  if (!a || !b) return false;
+  const ha = crypto.createHash('sha256').update(String(a)).digest();
+  const hb = crypto.createHash('sha256').update(String(b)).digest();
+  return crypto.timingSafeEqual(ha, hb);
+}
 
 function sessionToken() {
   const token = crypto.randomBytes(32).toString('hex');
@@ -42,11 +73,11 @@ function sweepSessions() {
 
 exports.isValidSession = isValidSession;
 
-
 function escapeHTML(str) {
-  return String(str).replace(/[&<>"']/g, (c) => (
-    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
-  ));
+  return String(str).replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+  );
 }
 
 function layout(title, body) {
@@ -88,25 +119,40 @@ ${body}
 </html>`;
 }
 
-exports.loginPage = (_req, res) => {
-  res.send(layout('Entrar', `
+exports.loginPage = (req, res) => {
+  const csrf = emitirCSRF(res);
+  res.send(
+    layout(
+      'Entrar',
+      `
     <div class="login">
       <h1>🔐 Painel do Carnaval</h1>
       <p class="count">Acesso restrito — mensagens do "Fale com a gente"</p>
       <form method="POST" action="/admin/login">
+        <input type="hidden" name="_csrf" value="${csrf}" />
         <input type="password" name="senha" placeholder="Senha do painel" required autofocus />
         <button class="btn" type="submit">Entrar</button>
         <p class="err">
           ${res.locals.loginError ? `🚫 ${escapeHTML(res.locals.loginError)}` : ''}
         </p>
       </form>
-    </div>`));
+    </div>`
+    )
+  );
 };
 
 exports.login = (req, res) => {
-  const { senha } = req.body || {};
+  const { senha, _csrf } = req.body || {};
+
+  // CSRF (login): o campo do formulário precisa bater com o cookie
+  if (!igualEmTempoConstante(_csrf, req.cookies[CSRF_COOKIE])) {
+    res.locals.loginError = 'Sessão expirada — recarregue a página e tente de novo.';
+    res.status(403);
+    return exports.loginPage(req, res);
+  }
+
   const expected = process.env.ADMIN_PASS || '';
-  if (expected && senha && senha === expected) {
+  if (igualEmTempoConstante(senha, expected)) {
     res.cookie('snuffly_admin', sessionToken(), {
       httpOnly: true,
       sameSite: 'lax',
@@ -121,7 +167,13 @@ exports.login = (req, res) => {
 };
 
 // Logout via POST (state change por GET era suscetível a CSRF de logout)
+// e com token CSRF: o formulário do painel envia o mesmo valor do cookie.
 exports.logout = (req, res) => {
+  const { _csrf } = req.body || {};
+  if (!igualEmTempoConstante(_csrf, req.cookies[CSRF_COOKIE])) {
+    res.status(403).send('Pedido de logout rejeitado (CSRF). Volte ao painel e tente de novo.');
+    return;
+  }
   destroySession(req.cookies.snuffly_admin);
   res.clearCookie('snuffly_admin');
   res.redirect('/admin/login');
@@ -131,7 +183,9 @@ exports.listPage = async (req, res, next) => {
   try {
     const mensagens = await Contact.list(200);
     const itens = mensagens.length
-      ? mensagens.map((m) => `
+      ? mensagens
+          .map(
+            (m) => `
         <article class="msg">
           <div class="msg__head">
             <strong>${escapeHTML(m.nome)}</strong>
@@ -139,18 +193,28 @@ exports.listPage = async (req, res, next) => {
           </div>
           <span class="msg__mail">${escapeHTML(m.email)}</span>
           <p>${escapeHTML(m.mensagem)}</p>
-        </article>`).join('')
+        </article>`
+          )
+          .join('')
       : '<div class="empty">🎪 Nenhuma mensagem ainda. Assim que alguém falar com a gente, aparece aqui!</div>';
 
-    res.send(layout('Mensagens', `
+    res.send(
+      layout(
+        'Mensagens',
+        `
       <header>
         <h1>📬 Mensagens do "Fale com a gente"</h1>
         <span class="count">${mensagens.length} mensagem(ns)</span>
         <form method="POST" action="/admin/logout" style="display:inline">
+          <input type="hidden" name="_csrf" value="${escapeHTML(req.cookies[CSRF_COOKIE] || novoCSRF())}" />
           <button class="btn" type="submit">Sair</button>
         </form>
       </header>
       <a class="back" href="/">← Voltar ao site</a>
-      <main>${itens}</main>`));
-  } catch (err) { next(err); }
+      <main>${itens}</main>`
+      )
+    );
+  } catch (err) {
+    next(err);
+  }
 };

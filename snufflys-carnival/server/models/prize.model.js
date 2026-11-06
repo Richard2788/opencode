@@ -71,7 +71,13 @@ class Prize {
       params
     );
 
-    return { items: rows.map(withSafeImage), total, page: safePage, limit: safeLimit, pages: totalPages };
+    return {
+      items: rows.map(withSafeImage),
+      total,
+      page: safePage,
+      limit: safeLimit,
+      pages: totalPages,
+    };
   }
 
   static async featured(limit = 3) {

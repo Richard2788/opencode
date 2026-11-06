@@ -26,7 +26,7 @@
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
 
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 *,
@@ -58,11 +58,13 @@ body {
     radial-gradient(circle, rgba(255, 214, 0, 0.16) 1.1px, transparent 1.4px),
     linear-gradient(180deg, #5c0b0e 0%, var(--bg-deep) 100%);
   background-size:
-    auto, auto,
+    auto,
+    auto,
     68px 68px,
     auto;
   background-position:
-    center, center,
+    center,
+    center,
     0 0,
     center;
   background-attachment: fixed;
@@ -108,7 +110,7 @@ button {
 }
 
 .bunting::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 3px;
   left: 0;
@@ -128,16 +130,33 @@ button {
   animation: sway 5s ease-in-out infinite;
 }
 
-.bunting span:nth-child(4n + 1) { --flag: var(--red); }
-.bunting span:nth-child(4n + 2) { --flag: var(--gold); }
-.bunting span:nth-child(4n + 3) { --flag: #ffffff; }
-.bunting span:nth-child(4n + 4) { --flag: var(--pink); }
-.bunting span:nth-child(2n) { animation-delay: -1.4s; }
-.bunting span:nth-child(3n) { animation-delay: -2.6s; }
+.bunting span:nth-child(4n + 1) {
+  --flag: var(--red);
+}
+.bunting span:nth-child(4n + 2) {
+  --flag: var(--gold);
+}
+.bunting span:nth-child(4n + 3) {
+  --flag: #ffffff;
+}
+.bunting span:nth-child(4n + 4) {
+  --flag: var(--pink);
+}
+.bunting span:nth-child(2n) {
+  animation-delay: -1.4s;
+}
+.bunting span:nth-child(3n) {
+  animation-delay: -2.6s;
+}
 
 @keyframes sway {
-  0%, 100% { transform: rotate(-2deg); }
-  50% { transform: rotate(2deg); }
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
 }
 
 /* ---------- Layout ---------- */
@@ -231,7 +250,10 @@ button {
   background: rgba(255, 255, 255, 0.06);
   color: var(--cream);
   cursor: pointer;
-  transition: background 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .icon-btn:active {
@@ -294,7 +316,9 @@ button {
   border: 0;
   border-radius: 10px;
   cursor: pointer;
-  transition: background 0.18s ease, color 0.18s ease;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
 }
 
 .diff-btn.is-on {
@@ -321,7 +345,9 @@ button {
   color: var(--gold);
   font-variant-numeric: tabular-nums;
   text-shadow: 0 2px 14px rgba(255, 214, 0, 0.35);
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .hud__timer-value.is-penalty {
@@ -352,7 +378,10 @@ button {
   border: 1px solid transparent;
   cursor: pointer;
   touch-action: manipulation;
-  transition: transform 0.15s ease, filter 0.15s ease, background 0.2s ease;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease,
+    background 0.2s ease;
 }
 
 .btn--wide {
@@ -493,7 +522,10 @@ button {
   aspect-ratio: 3 / 4;
   transform: rotate(var(--rot, 0deg));
   transform-origin: 50% 88%;
-  transition: left 0.25s cubic-bezier(0.3, 1.2, 0.4, 1), bottom 0.25s cubic-bezier(0.3, 1.2, 0.4, 1), transform 0.25s ease;
+  transition:
+    left 0.25s cubic-bezier(0.3, 1.2, 0.4, 1),
+    bottom 0.25s cubic-bezier(0.3, 1.2, 0.4, 1),
+    transform 0.25s ease;
   pointer-events: none;
 }
 
@@ -516,11 +548,16 @@ button {
   border-radius: 10% 10% 6% 6% / 16% 16% 6% 6%;
   background:
     /* brilho do plástico */
-    linear-gradient(100deg, rgba(255, 255, 255, 0.35) 0%, transparent 18%, transparent 68%, rgba(0, 0, 0, 0.14) 100%),
+    linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0.35) 0%,
+      transparent 18%,
+      transparent 68%,
+      rgba(0, 0, 0, 0.14) 100%
+    ),
     /* estrias verticais do molde do copo */
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.13) 0 6%, transparent 6% 14%),
-    /* plástico vermelho */
-    linear-gradient(180deg, #ef5350 0%, #e53935 42%, #c62828 100%);
+    /* plástico vermelho */ linear-gradient(180deg, #ef5350 0%, #e53935 42%, #c62828 100%);
   border: 1px solid rgba(90, 0, 0, 0.55);
   box-shadow:
     0 6px 12px -6px rgba(0, 0, 0, 0.65),
@@ -539,7 +576,9 @@ button {
     radial-gradient(circle at 50% 50%, #fff 0 15%, transparent 16%) 45% 0 / 30% 70% no-repeat,
     radial-gradient(circle at 82% 50%, #fff 0 15%, transparent 16%) 90% 0 / 30% 70% no-repeat,
     linear-gradient(90deg, #ffc93c, #ffe082 50%, #ffc93c);
-  box-shadow: 0 1px 3px rgba(90, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 1px 3px rgba(90, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 /* copo de boca para baixo: aro amarelo encostado no chão */
@@ -563,8 +602,13 @@ button {
 }
 
 @keyframes cupPulse {
-  0%, 100% { transform: rotate(var(--rot, 0deg)) scale(1); }
-  50% { transform: rotate(var(--rot, 0deg)) scale(1.045); }
+  0%,
+  100% {
+    transform: rotate(var(--rot, 0deg)) scale(1);
+  }
+  50% {
+    transform: rotate(var(--rot, 0deg)) scale(1.045);
+  }
 }
 
 /* pirâmide balança quando um copo sai */
@@ -573,11 +617,21 @@ button {
 }
 
 @keyframes cupWobble {
-  0% { transform: rotate(0deg); }
-  25% { transform: rotate(2.4deg) translateX(1%); }
-  55% { transform: rotate(-1.8deg) translateX(-0.8%); }
-  80% { transform: rotate(0.9deg); }
-  100% { transform: rotate(0deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(2.4deg) translateX(1%);
+  }
+  55% {
+    transform: rotate(-1.8deg) translateX(-0.8%);
+  }
+  80% {
+    transform: rotate(0.9deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
 }
 
 .cup.is-popped {
@@ -585,8 +639,12 @@ button {
 }
 
 @keyframes cupPop {
-  0% { transform: rotate(var(--rot, 0deg)) scale(1.18); }
-  100% { transform: rotate(var(--rot, 0deg)) scale(1); }
+  0% {
+    transform: rotate(var(--rot, 0deg)) scale(1.18);
+  }
+  100% {
+    transform: rotate(var(--rot, 0deg)) scale(1);
+  }
 }
 
 /* ---------- Prêmios: papercrafts ---------- */
@@ -740,8 +798,14 @@ dialog[open] {
 }
 
 @keyframes dialogIn {
-  from { opacity: 0; transform: translateY(14px) scale(0.96); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .prize__card,
@@ -761,7 +825,7 @@ dialog[open] {
 }
 
 .prize__card::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 8px;
   border: 1.5px dashed rgba(255, 214, 0, 0.25);
@@ -899,8 +963,14 @@ dialog[open] {
 }
 
 @keyframes toastIn {
-  from { opacity: 0; transform: translate(-50%, 12px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 .toast__text {
@@ -951,7 +1021,12 @@ dialog[open] {
   border: 1.5px dashed rgba(255, 214, 0, 0.4);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.05);
-  padding: 14px 14px 16px;
+  padding: 12px 14px 14px;
+}
+
+/* Título do ranking com espaço simétrico (igual acima e abaixo) */
+.ranking .section-title {
+  margin-bottom: 12px;
 }
 
 .ranking {

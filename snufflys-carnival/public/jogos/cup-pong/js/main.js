@@ -137,4 +137,4 @@ requestAnimationFrame(frame);
 /* PWA: o service worker e a instalação são gerenciados pelo site principal
    (/sw.js, /manifest.json) — o jogo roda dentro do Snuffly's Carnival. */
 
-window.beerPong = { game, renderer, store, audio };
+window.cupPong = { game, renderer, store, audio };

@@ -103,9 +103,10 @@
   /* ---------------- Vitrine de prêmios ---------------- */
   // Escapa entidades HTML (defesa extra contra XSS em dados futuros da API)
   function escapeHTML(str) {
-    return String(str).replace(/[&<>"']/g, (c) => (
-      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
-    ));
+    return String(str).replace(
+      /[&<>"']/g,
+      (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+    );
   }
 
   // Só aceita URLs http(s) para imagens — bloqueia javascript:, data: (não-imagem) etc.
@@ -249,7 +250,7 @@
         const fresh = data.items.filter((p) => !known.has(p.id));
         allItems = append ? allItems.concat(fresh) : data.items;
         cachePrizes(allItems);
-        renderGrid();
+        renderPrizes(grid, allItems);
         more.hidden = state.page >= state.pages;
         status.textContent = allItems.length
           ? `${data.total} ${data.total === 1 ? 'prêmio' : 'prêmios'} encontrados.`
@@ -262,21 +263,6 @@
           showMessage(grid, `<p><strong>⚠️ ${err.message}</strong></p>`);
         }
       }
-    }
-
-    function renderGrid() {
-      const seen = new Set(store.get(LS.seenPrizes, []));
-      const favs = new Set(store.get(LS.favorites, []));
-      grid.innerHTML = '';
-      allItems.forEach((p) => {
-        const card = document.createElement('article');
-        card.className = 'prize-card';
-        card.innerHTML = prizeCardHTML(p, favs.has(p.id), !seen.has(p.id));
-        grid.appendChild(card);
-        seen.add(p.id);
-      });
-      bindFavButtons(grid, favs);
-      store.set(LS.seenPrizes, [...seen]);
     }
 
     chips.forEach((chip) =>

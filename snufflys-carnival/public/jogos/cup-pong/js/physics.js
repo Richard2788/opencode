@@ -28,12 +28,13 @@ export const mToZu = (m) => m / PHYS.TABLE_DEPTH;
 
 /** raio interno do copo em uma altura h (cone) */
 export const cupRadiusAt = (h) =>
-  PHYS.CUP_BOTTOM + (PHYS.CUP_TOP - PHYS.CUP_BOTTOM) * (clamp(h, 0, PHYS.CUP_HEIGHT) / PHYS.CUP_HEIGHT);
+  PHYS.CUP_BOTTOM +
+  (PHYS.CUP_TOP - PHYS.CUP_BOTTOM) * (clamp(h, 0, PHYS.CUP_HEIGHT) / PHYS.CUP_HEIGHT);
 
 /* inclinação da parede do copo (dR/dh) */
 const WALL_TAN = (PHYS.CUP_TOP - PHYS.CUP_BOTTOM) / PHYS.CUP_HEIGHT; // ≈ 0.114
 const WALL_COS = 1 / Math.sqrt(1 + WALL_TAN * WALL_TAN); // componente radial da normal
-const WALL_SIN = WALL_TAN * WALL_COS;                    // componente vertical da normal
+const WALL_SIN = WALL_TAN * WALL_COS; // componente vertical da normal
 
 const DT = 1 / 360; // passo fixo da simulação
 
@@ -184,8 +185,7 @@ export class BallSim {
     if (!insideAny) this.insideNow = null;
 
     // mesa: quique + rolamento
-    const onTable =
-      Math.abs(p[0]) <= PHYS.TABLE_WIDTH && p[1] >= 0 && p[1] <= PHYS.TABLE_DEPTH;
+    const onTable = Math.abs(p[0]) <= PHYS.TABLE_WIDTH && p[1] >= 0 && p[1] <= PHYS.TABLE_DEPTH;
     if (this.rolling) {
       p[2] = r;
       v[2] = 0;
@@ -379,12 +379,7 @@ export class BallSim {
       // parede externa do copo (temperada quando a bola sai do copo)
       // só quando o centro da bola está REALMENTE encostado na parede:
       // |rh - rc| < r*0.8 (senão bolas distantes eram puxadas para a parede)
-      if (
-        p[2] < HC - 0.004 &&
-        rh + r * 0.8 > rc &&
-        rh < rc + r * 0.8 &&
-        rh < RT + r * 1.6
-      ) {
+      if (p[2] < HC - 0.004 && rh + r * 0.8 > rc && rh < rc + r * 0.8 && rh < RT + r * 1.6) {
         const rr = Math.max(rh, 1e-6);
         const hu0 = dx / rr;
         const hu1 = dd / rr;

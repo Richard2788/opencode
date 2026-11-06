@@ -24,17 +24,16 @@ function sanitizeForWebhook(text) {
 /** Envia a notificação de novo contato. Falha NÃO derruba a requisição. */
 async function notifyContact({ nome, email, mensagem }) {
   const text = sanitizeForWebhook(
-    `🎪 Novo contato no site!\n` +
-      `👤 ${nome} <${email}>\n\n${mensagem}`
+    `🎪 Novo contato no site!\n` + `👤 ${nome} <${email}>\n\n${mensagem}`
   );
   const results = [];
 
   if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
     try {
-      await postJSON(
-        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-        { chat_id: TELEGRAM_CHAT_ID, text }
-      );
+      await postJSON(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        chat_id: TELEGRAM_CHAT_ID,
+        text,
+      });
       results.push('telegram:ok');
     } catch (err) {
       console.error('[notifier] Telegram falhou:', err.message);

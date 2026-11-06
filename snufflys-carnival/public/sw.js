@@ -3,7 +3,7 @@
    - Cache-first com atualização em background para estáticos
    - Network-first para a API
    - Fallback offline.html para navegações sem rede            */
-const CACHE = 'snuffly-v8';
+const CACHE = 'snuffly-v10';
 const ASSETS = [
   '/',
   '/index.html',
@@ -21,18 +21,20 @@ const ASSETS = [
   '/icons/icon-192-maskable.png',
   '/icons/icon-512-maskable.png',
   '/img/logo.png',
+  '/img/logo-512.webp',
+  // Jogo: Adivinha o Meu Número
+  '/jogos/adivinha-numero/',
+  '/jogos/scores-comum.js',
   // Jogo: Adivinha o Meu Número
   '/jogos/adivinha-numero/',
   '/jogos/adivinha-numero/index.html',
   '/jogos/adivinha-numero/style.css',
   '/jogos/adivinha-numero/game.js',
-  '/jogos/adivinha-numero/scores.js',
   // Jogo: Hack da Torre de Copos
   '/jogos/hack-torre-copos/',
   '/jogos/hack-torre-copos/index.html',
   '/jogos/hack-torre-copos/style.css',
   '/jogos/hack-torre-copos/game.js',
-  '/jogos/hack-torre-copos/scores.js',
   '/jogos/hack-torre-copos/audio.js',
   // Jogo: Tomba-copos
   '/jogos/tomba-copos/',
@@ -40,20 +42,18 @@ const ASSETS = [
   '/jogos/tomba-copos/css/style.css',
   '/jogos/tomba-copos/js/game.js',
   '/jogos/tomba-copos/js/app.js',
-  '/jogos/tomba-copos/scores.js',
   '/jogos/tomba-copos/assets/papercraft.svg',
-  // Jogo: Beer Pong
-  '/jogos/beer-pong/',
-  '/jogos/beer-pong/index.html',
-  '/jogos/beer-pong/styles.css',
-  '/jogos/beer-pong/scores.js',
-  '/jogos/beer-pong/js/config.js',
-  '/jogos/beer-pong/js/store.js',
-  '/jogos/beer-pong/js/audio.js',
-  '/jogos/beer-pong/js/render.js',
-  '/jogos/beer-pong/js/game.js',
-  '/jogos/beer-pong/js/ui.js',
-  '/jogos/beer-pong/js/main.js',
+  // Jogo: Cup Pong
+  '/jogos/cup-pong/',
+  '/jogos/cup-pong/index.html',
+  '/jogos/cup-pong/styles.css',
+  '/jogos/cup-pong/js/config.js',
+  '/jogos/cup-pong/js/store.js',
+  '/jogos/cup-pong/js/audio.js',
+  '/jogos/cup-pong/js/render.js',
+  '/jogos/cup-pong/js/game.js',
+  '/jogos/cup-pong/js/ui.js',
+  '/jogos/cup-pong/js/main.js',
 ];
 
 self.addEventListener('install', (e) => {

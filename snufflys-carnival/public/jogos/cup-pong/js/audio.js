@@ -52,13 +52,7 @@ export class AudioEngine {
 
   _tone(freq, options = {}) {
     if (!this.ctx || !this.enabled) return;
-    const {
-      type = 'sine',
-      dur = 0.2,
-      gain = 0.15,
-      delay = 0,
-      slideTo = null,
-    } = options;
+    const { type = 'sine', dur = 0.2, gain = 0.15, delay = 0, slideTo = null } = options;
     const t0 = this.ctx.currentTime + delay;
     const osc = this.ctx.createOscillator();
     const amp = this.ctx.createGain();

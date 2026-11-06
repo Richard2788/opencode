@@ -8,7 +8,15 @@ const rateLimit = require('../middleware/rate-limit');
 router.use(express.urlencoded({ extended: false }));
 
 router.get('/login', admin.loginPage);
-router.post('/login', rateLimit({ windowMs: 10 * 60 * 1000, max: 10, message: 'Muitas tentativas. Aguarde alguns minutos.' }), admin.login);
+router.post(
+  '/login',
+  rateLimit({
+    windowMs: 10 * 60 * 1000,
+    max: 10,
+    message: 'Muitas tentativas. Aguarde alguns minutos.',
+  }),
+  admin.login
+);
 router.post('/logout', admin.logout);
 
 // Middleware de proteção: sem sessão válida, manda para o login

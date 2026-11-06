@@ -10,7 +10,7 @@
   <link rel="icon" href="/favicon.png" type="image/png" />
   <link rel="stylesheet" href="./style.css" />
 </head>
-<body>
+<body data-game-id="adivinha-numero">
   <div class="bunting" aria-hidden="true">
     <span></span><span></span><span></span><span></span><span></span><span></span>
     <span></span><span></span><span></span><span></span><span></span><span></span>
@@ -104,6 +104,8 @@
         <h2 class="board__title" id="rankingTitle">🏆 Ranking — Top 10</h2>
         <div id="gameRanking" aria-live="polite"><p class="ranking__empty">Carregando ranking…</p></div>
       </section>
+
+      <p class="back-link"><a class="btn btn--ghost btn--wide" href="/jogos.html">← Voltar aos jogos</a></p>
     </main>
 
     <footer class="footer">
@@ -148,7 +150,7 @@
     <p class="noscript">Ative o JavaScript para jogar o Adivinha o Meu Número.</p>
   </noscript>
 
-  <script src="./scores.js" defer></script>
+  <script src="../scores-comum.js" defer></script>
   <script src="./game.js" defer></script>
 </body>
 </html>

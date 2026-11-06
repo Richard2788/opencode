@@ -11,7 +11,7 @@
   <link rel="apple-touch-icon" href="/icons/icon-180.png">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body data-game-id="tomba-copos">
   <div class="app">
 
     <!-- Cabeçalho / HUD -->
@@ -43,8 +43,7 @@
     </main>
 
     <footer class="footer">
-      <span>🎉 Derrube <strong>5 de 6 copos</strong> com 3 bolas para ganhar o prêmio!</span>
-      <a href="/jogos.html" style="display:inline-block;margin-left:8px;color:#ffc93c;">← Jogos</a>
+      <span>🎉 Derrube <strong>5 de 6 copos</strong> com acertos diretos (cascata não conta) para ganhar o prêmio!</span>
     </footer>
 
     <!-- Ranking global -->
@@ -52,6 +51,8 @@
       <h2>🏆 Ranking — Top 10</h2>
       <div id="gameRanking" aria-live="polite"><p style="opacity:.7">Carregando ranking…</p></div>
     </section>
+
+    <p class="back-link"><a class="btn btn--ghost" href="/jogos.html">← Voltar aos jogos</a></p>
   </div>
 
   <!-- Modal: início -->
@@ -62,7 +63,7 @@
       <p class="modal__rules">
         🥅 Uma pirâmide de <strong>6 copos carnavalescos</strong> espera por você.<br>
         🏓 Puxe a <strong>bola de tênis de mesa</strong> para baixo e solte para lançar.<br>
-        🏆 Derrube <strong>5 ou mais copos</strong> com <strong>3 bolas</strong> e leve um <strong>boneco de papel</strong>!
+        🏆 Derrube <strong>5 ou mais copos com acertos da bola</strong> e ganhe: copos que caírem em <strong>cascata</strong> não contam na pontuação!
       </p>
       <button id="btn-start" class="btn btn--primary">🎉 Começar a folia!</button>
       <button id="btn-see-doll" class="btn btn--ghost">👀 Espiar o prêmio</button>
@@ -80,8 +81,8 @@
           <img id="paperdoll-img" src="assets/papercraft.svg" alt="Boneco de papel papercraft - Rainha do Carnaval" draggable="false">
         </div>
         <p class="result__tip">✂️ <em>Baixe, imprima, recorte pelas linhas, dobre e cole nas abas cinzas!</em></p>
-        <button id="btn-download" class="btn btn--primary">⬇️ Baixar Papercraft (SVG)</button>
-        <button id="btn-play-again" class="btn btn--ghost">🔁 Jogar de novo</button>
+        <button id="btn-play-again" class="btn btn--primary">🔁 Jogar de novo</button>
+        <button id="btn-download" class="btn btn--ghost">⬇️ Baixar Papercraft (SVG)</button>
       </div>
       <!-- Derrota -->
       <div id="result-lose" hidden>
@@ -90,13 +91,14 @@
         <button id="btn-try-again" class="btn btn--primary retry-shake">🔁 TENTE DE NOVO</button>
       </div>
       <p class="result__score" id="result-score"></p>
+      <p class="result__score result__plays" id="result-plays"></p>
     </div>
   </div>
 
   <!-- Aviso de orientação (telas largas e baixas) -->
   <div class="rotate-hint" id="rotate-hint">📱 Vire o celular para jogar!</div>
 
-  <script src="scores.js"></script>
+  <script src="../scores-comum.js" defer></script>
   <script src="js/game.js"></script>
   <script src="js/app.js"></script>
 </body>

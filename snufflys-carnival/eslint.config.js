@@ -1,8 +1,8 @@
 /* ESLint (flat config) — regras essenciais, sem conflitar com o estilo existente. */
 module.exports = [
-  // ES modules do jogo Beer Pong (import/export no navegador)
+  // ES modules do jogo Cup Pong (import/export no navegador)
   {
-    files: ['public/jogos/beer-pong/js/**/*.js'],
+    files: ['public/jogos/cup-pong/js/**/*.js'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
@@ -32,7 +32,7 @@ module.exports = [
   },
   {
     files: ['server/**/*.js', 'tests/**/*.js', 'public/js/**/*.js', 'public/jogos/**/*.js'],
-    ignores: ['public/jogos/beer-pong/js/**'],
+    ignores: ['public/jogos/cup-pong/js/**'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'commonjs',

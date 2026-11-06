@@ -26,7 +26,7 @@ Os quatro jogos da empresa, a descrever na página dedicada (cada um ocupará um
 1. **Tomba-copos** — Copos de plástico decorados com motivos carnavalescos (máscaras, confetes, tinta) empilhados em formato de pirâmide. O jogador derruba a pirâmide arremessando uma bola de meia à distância para ganhar prêmios.
 2. **Hack da Torre de Copos** — Truque de destreza: juntar/raspar rapidamente todos os copos de uma pirâmide empilhada (speed stacking).
 3. **Adivinha o Meu Número** — O vendedor escolhe e anota um número de 1 a 10; o jogador tenta adivinhá-lo. Acertando (ou chegando próximo), recebe um prêmio.
-4. **Beer Pong** — Arremesso de bolinha de pingue-pongue tentando fazê-la cair em um dos copos enfileirados na mesa; acertar um copo premia.
+4. **Cup Pong** — Arremesso de bolinha de pingue-pongue tentando fazê-la cair em um dos copos vazios enfileirados na mesa; acertar um copo premia.
 
 > Detalhamento dos jogos: específico de cada jogo definido quando implementado. Nesta fase, o site deve expor apenas a descrição/catálogo e a estrutura de navegação para cada jogo.
 

@@ -156,6 +156,7 @@ main {
 
 .hero-logo {
   width: min(240px, 60vw);
+  height: auto;
   margin: 0 auto 12px;
   border-radius: 24px;
   background: var(--white);

@@ -6,7 +6,7 @@ const $ = (selector) => document.querySelector(selector);
 export function initUI({ store, audio, game }) {
   const hud = $('#hud');
   const screens = new Map(
-    [...document.querySelectorAll('.screen')].map((el) => [el.id.replace('screen-', ''), el]),
+    [...document.querySelectorAll('.screen')].map((el) => [el.id.replace('screen-', ''), el])
   );
 
   const el = {
@@ -111,7 +111,10 @@ export function initUI({ store, audio, game }) {
 
     // pop nos contadores quando muda o placar
     const prev = updateHud._prev || (updateHud._prev = {});
-    for (const [node, value] of [[el.count1, data.cups[0]], [el.count2, data.cups[1]]]) {
+    for (const [node, value] of [
+      [el.count1, data.cups[0]],
+      [el.count2, data.cups[1]],
+    ]) {
       const key = node.id;
       if (prev[key] !== undefined && prev[key] !== value && !node.hidden) {
         node.classList.remove('pop');
@@ -255,9 +258,7 @@ export function initUI({ store, audio, game }) {
     // Ranking global (API do site) — modo contra CPU
     const bridge = window.SnufflyScores;
     if (bridge && mode === 'cpu') {
-      const points = playerWon
-        ? 400 + result.hits * 30 + result.bestStreak * 30
-        : result.hits * 20;
+      const points = playerWon ? 400 + result.hits * 30 + result.bestStreak * 30 : result.hits * 20;
       bridge.submitScore(points);
     }
 
@@ -351,7 +352,6 @@ export function initUI({ store, audio, game }) {
   }
 
   $('#btn-reset').addEventListener('click', () => {
-     
     if (window.confirm('Apagar todas as estatísticas?')) {
       resetStats(store);
       syncStats();

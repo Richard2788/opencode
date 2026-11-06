@@ -28,7 +28,7 @@
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
 
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 *,
@@ -51,7 +51,8 @@ body {
   margin: 0;
   min-height: 100vh;
   min-height: 100dvh;
-  padding: calc(var(--safe-top) + 34px) calc(var(--safe-right) + 0px) calc(var(--safe-bottom) + 0px) calc(var(--safe-left) + 0px);
+  padding: calc(var(--safe-top) + 34px) calc(var(--safe-right) + 0px) calc(var(--safe-bottom) + 0px)
+    calc(var(--safe-left) + 0px);
   font-family: var(--font);
   color: var(--cream);
   background-color: var(--bg);
@@ -63,12 +64,16 @@ body {
     radial-gradient(circle, rgba(255, 138, 128, 0.14) 1.1px, transparent 1.4px),
     linear-gradient(180deg, #5c0b0e 0%, var(--bg-deep) 100%);
   background-size:
-    auto, auto, auto,
+    auto,
+    auto,
+    auto,
     68px 68px,
     96px 96px,
     auto;
   background-position:
-    center, center, center,
+    center,
+    center,
+    center,
     0 0,
     34px 42px,
     center;
@@ -115,7 +120,7 @@ button {
 }
 
 .bunting::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 3px;
   left: 0;
@@ -135,16 +140,33 @@ button {
   animation: sway 5s ease-in-out infinite;
 }
 
-.bunting span:nth-child(4n + 1) { --flag: var(--pink); }
-.bunting span:nth-child(4n + 2) { --flag: var(--gold); }
-.bunting span:nth-child(4n + 3) { --flag: #ffffff; }
-.bunting span:nth-child(4n + 4) { --flag: var(--purple); }
-.bunting span:nth-child(2n) { animation-delay: -1.4s; }
-.bunting span:nth-child(3n) { animation-delay: -2.6s; }
+.bunting span:nth-child(4n + 1) {
+  --flag: var(--pink);
+}
+.bunting span:nth-child(4n + 2) {
+  --flag: var(--gold);
+}
+.bunting span:nth-child(4n + 3) {
+  --flag: #ffffff;
+}
+.bunting span:nth-child(4n + 4) {
+  --flag: var(--purple);
+}
+.bunting span:nth-child(2n) {
+  animation-delay: -1.4s;
+}
+.bunting span:nth-child(3n) {
+  animation-delay: -2.6s;
+}
 
 @keyframes sway {
-  0%, 100% { transform: rotate(-2deg); }
-  50% { transform: rotate(2deg); }
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
 }
 
 /* ---------- Layout ---------- */
@@ -239,7 +261,10 @@ button {
   background: rgba(255, 255, 255, 0.06);
   color: var(--cream);
   cursor: pointer;
-  transition: background 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .icon-btn:active {
@@ -269,8 +294,13 @@ button {
 }
 
 @keyframes glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 214, 0, 0.35); }
-  50% { box-shadow: 0 0 0 7px rgba(255, 214, 0, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 214, 0, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(255, 214, 0, 0);
+  }
 }
 
 .main {
@@ -310,8 +340,13 @@ button {
 }
 
 @keyframes bob {
-  0%, 100% { transform: translateY(0) rotate(-2deg); }
-  50% { transform: translateY(-4px) rotate(2deg); }
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(2deg);
+  }
 }
 
 .bubble {
@@ -349,7 +384,7 @@ button {
 }
 
 .paper::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 6px;
   border: 1.5px dashed rgba(58, 17, 32, 0.22);
@@ -362,11 +397,21 @@ button {
 }
 
 @keyframes paperShuffle {
-  0% { transform: rotate(0) scale(1); }
-  25% { transform: rotate(-2.2deg) scale(1.015); }
-  55% { transform: rotate(2deg) scale(1.01); }
-  80% { transform: rotate(-0.8deg) scale(1.005); }
-  100% { transform: rotate(0) scale(1); }
+  0% {
+    transform: rotate(0) scale(1);
+  }
+  25% {
+    transform: rotate(-2.2deg) scale(1.015);
+  }
+  55% {
+    transform: rotate(2deg) scale(1.01);
+  }
+  80% {
+    transform: rotate(-0.8deg) scale(1.005);
+  }
+  100% {
+    transform: rotate(0) scale(1);
+  }
 }
 
 .paper.is-revealed .paper__number {
@@ -374,9 +419,18 @@ button {
 }
 
 @keyframes stamp {
-  0% { transform: scale(1.9); opacity: 0; }
-  60% { transform: scale(0.94); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(0.94);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .paper__stub {
@@ -458,7 +512,10 @@ button {
   border-radius: 50%;
   background: var(--gold);
   box-shadow: 0 0 10px rgba(255, 214, 0, 0.55);
-  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  transition:
+    background 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
 }
 
 .attempts__dot.is-used {
@@ -513,11 +570,21 @@ button {
     opacity 0.2s ease;
 }
 
-.number:nth-child(5n + 1) { --tint: rgba(255, 138, 128, 0.33); }
-.number:nth-child(5n + 2) { --tint: rgba(255, 214, 0, 0.26); }
-.number:nth-child(5n + 3) { --tint: rgba(102, 187, 106, 0.26); }
-.number:nth-child(5n + 4) { --tint: rgba(183, 28, 28, 0.34); }
-.number:nth-child(5n + 5) { --tint: rgba(255, 123, 61, 0.28); }
+.number:nth-child(5n + 1) {
+  --tint: rgba(255, 138, 128, 0.33);
+}
+.number:nth-child(5n + 2) {
+  --tint: rgba(255, 214, 0, 0.26);
+}
+.number:nth-child(5n + 3) {
+  --tint: rgba(102, 187, 106, 0.26);
+}
+.number:nth-child(5n + 4) {
+  --tint: rgba(183, 28, 28, 0.34);
+}
+.number:nth-child(5n + 5) {
+  --tint: rgba(255, 123, 61, 0.28);
+}
 
 .number:active:not(:disabled) {
   transform: translateY(3px);
@@ -545,7 +612,7 @@ button {
 }
 
 .number.is-picked::after {
-  content: "✕";
+  content: '✕';
   position: absolute;
   top: 5px;
   right: 7px;
@@ -565,9 +632,15 @@ button {
 }
 
 @keyframes pop {
-  0% { transform: scale(1); }
-  45% { transform: scale(1.16); }
-  100% { transform: scale(1.05); }
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.16);
+  }
+  100% {
+    transform: scale(1.05);
+  }
 }
 
 /* ---------- Feedback ---------- */
@@ -581,7 +654,9 @@ button {
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.05);
-  transition: background 0.25s ease, border-color 0.25s ease;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease;
 }
 
 .feedback__icon {
@@ -628,9 +703,15 @@ button {
 }
 
 @keyframes bump {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.025); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.025);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* ---------- Botões ---------- */
@@ -649,7 +730,10 @@ button {
   border: 1px solid transparent;
   cursor: pointer;
   touch-action: manipulation;
-  transition: transform 0.15s ease, filter 0.15s ease, background 0.2s ease;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease,
+    background 0.2s ease;
 }
 
 .btn--wide {
@@ -781,8 +865,14 @@ dialog[open] {
 }
 
 @keyframes dialogIn {
-  from { opacity: 0; transform: translateY(14px) scale(0.96); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .prize__card,
@@ -802,7 +892,7 @@ dialog[open] {
 }
 
 .prize__card::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 8px;
   border: 1.5px dashed rgba(255, 214, 0, 0.25);
@@ -832,8 +922,13 @@ dialog[open] {
 }
 
 @keyframes prizeFloat {
-  0%, 100% { transform: translateY(0) rotate(-3deg); }
-  50% { transform: translateY(-6px) rotate(3deg); }
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(3deg);
+  }
 }
 
 .prize__title,
@@ -928,8 +1023,14 @@ dialog[open] {
 }
 
 @keyframes toastIn {
-  from { opacity: 0; transform: translate(-50%, 12px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 .toast__text {
@@ -1106,7 +1207,12 @@ dialog[open] {
   border: 1.5px dashed rgba(255, 214, 0, 0.4);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.05);
-  padding: 14px 14px 16px;
+  padding: 12px 14px 14px;
+}
+
+/* Título do ranking com espaço simétrico (igual acima e abaixo) */
+.ranking .board__title {
+  margin-bottom: 12px;
 }
 
 .ranking {
@@ -1125,7 +1231,9 @@ dialog[open] {
   font-weight: 600;
 }
 
-.ranking li:last-child { border-bottom: none; }
+.ranking li:last-child {
+  border-bottom: none;
+}
 
 .ranking li.is-me {
   background: rgba(255, 214, 0, 0.1);
@@ -1133,9 +1241,23 @@ dialog[open] {
   padding-inline: 8px;
 }
 
-.ranking__pos { flex: 0 0 2.2em; text-align: center; }
-.ranking__name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ranking__pts { flex: 0 0 auto; font-weight: 900; color: var(--gold); font-variant-numeric: tabular-nums; }
+.ranking__pos {
+  flex: 0 0 2.2em;
+  text-align: center;
+}
+.ranking__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ranking__pts {
+  flex: 0 0 auto;
+  font-weight: 900;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
 
 .ranking__empty {
   margin: 0;
@@ -1172,7 +1294,9 @@ dialog[open] {
   box-shadow: 0 0 0 3px rgba(255, 214, 0, 0.25);
 }
 
-.name-form input::placeholder { color: rgba(255, 248, 240, 0.45); }
+.name-form input::placeholder {
+  color: rgba(255, 248, 240, 0.45);
+}
 
 .info__lead {
   margin: 0 0 14px;
@@ -1183,5 +1307,13 @@ dialog[open] {
 }
 
 @media (max-height: 620px) and (orientation: landscape) {
-  .ranking.card-panel { display: none; }
+  .ranking.card-panel {
+    display: none;
+  }
+}
+
+/* Botão padrão "Voltar aos jogos" (padronizado com as outras barracas) */
+.back-link {
+  margin: 0;
+  text-align: center;
 }

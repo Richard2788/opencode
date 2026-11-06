@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS contacts (
 -- Pontuações/partidas — estrutura pronta para os 4 jogos futuros
 CREATE TABLE IF NOT EXISTS scores (
   id         SERIAL PRIMARY KEY,
-  game       VARCHAR(40)  NOT NULL CHECK (game IN ('tomba-copos', 'hack-torre-copos', 'adivinha-numero', 'beer-pong')),
+  game       VARCHAR(40)  NOT NULL CHECK (game IN ('tomba-copos', 'hack-torre-copos', 'adivinha-numero', 'cup-pong')),
   player     VARCHAR(40)  NOT NULL,
   points     INTEGER      NOT NULL CHECK (points >= 0),
   created_at TIMESTAMPTZ  NOT NULL DEFAULT now()

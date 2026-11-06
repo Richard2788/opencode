@@ -12,6 +12,7 @@
   const resultWin = document.getElementById('result-win');
   const resultLose = document.getElementById('result-lose');
   const resultScore = document.getElementById('result-score');
+  const resultPlays = document.getElementById('result-plays');
   const btnStart = document.getElementById('btn-start');
   const btnSeeDoll = document.getElementById('btn-see-doll');
   const btnRestart = document.getElementById('btn-restart');
@@ -20,15 +21,43 @@
   const btnDownload = document.getElementById('btn-download');
 
   TombaCarnaval.setHooks({
-    onFinish(won) { setTimeout(() => showResult(won), won ? 900 : 500); },
-    onStats(knocked, ballsLeft) { window.__lastStats = [knocked, ballsLeft]; }
+    onFinish(won, stats) {
+      window.__lastStats = [stats ? stats.knocked : 0, window.__lastStats?.[1] ?? 3];
+      window.__lastFinish = stats || null;
+      setTimeout(() => showResult(won), won ? 900 : 500);
+    },
+    onStats(knocked, ballsLeft) {
+      window.__lastStats = [knocked, ballsLeft];
+    },
   });
+
+  /** Lista por jogada: acertos individuais (pela bola) e em cascata. */
+  function resumoJogadas(stats) {
+    if (!stats || !stats.throws || !stats.throws.length) return '';
+    const linhas = stats.throws
+      .filter((t) => t.direct || t.casc)
+      .map((t) => {
+        const partes = [];
+        if (t.direct)
+          partes.push(t.direct + (t.direct === 1 ? ' copo individual' : ' copos individuais'));
+        if (t.casc) partes.push(t.casc + ' em cascata');
+        return 'Jogada ' + t.n + ': ' + partes.join(' + ');
+      });
+    if (!linhas.length) return '';
+    const nota = stats.cascade > 0 ? ' <em>(copos em cascata não contam na pontuação)</em>' : '';
+    return '<strong>Resumo das jogadas:</strong><br>' + linhas.join('<br>') + nota;
+  }
 
   function showResult(won) {
     resultWin.hidden = !won;
     resultLose.hidden = won;
     modalResult.classList.remove('hidden');
-    resultScore.textContent = 'Copos derrubados: ' + window.__lastStats[0] + ' de 6 • Bolas usadas: ' + (3 - window.__lastStats[1]);
+    resultScore.textContent =
+      'Copos derrubados: ' +
+      window.__lastStats[0] +
+      ' de 6 • Bolas usadas: ' +
+      (3 - window.__lastStats[1]);
+    resultPlays.innerHTML = won ? resumoJogadas(window.__lastFinish) : '';
 
     // animação de "tente de novo" (reanima)
     btnTryAgain.classList.remove('retry-shake');
@@ -53,6 +82,7 @@
     resultWin.hidden = false;
     resultLose.hidden = true;
     resultScore.textContent = '👀 Prévia do prêmio — jogue para ganhar!';
+    resultPlays.innerHTML = '';
     modalStart.classList.add('hidden');
     modalResult.classList.remove('hidden');
   }

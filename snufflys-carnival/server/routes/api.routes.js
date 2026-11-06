@@ -21,7 +21,8 @@ router.post(
   rateLimit({
     windowMs: 10 * 60 * 1000,
     max: 10,
-    message: 'Muitas mensagens enviadas em pouco tempo. Aguarde alguns minutos antes de tentar novamente.',
+    message:
+      'Muitas mensagens enviadas em pouco tempo. Aguarde alguns minutos antes de tentar novamente.',
   }),
   contact.create
 );

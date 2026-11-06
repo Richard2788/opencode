@@ -115,7 +115,7 @@ window.Sound = (function () {
     },
     pop() {
       tone({ freq: 300, end: 600, dur: 0.1, type: 'sine', vol: 0.12 });
-    }
+    },
   };
 
   return api;

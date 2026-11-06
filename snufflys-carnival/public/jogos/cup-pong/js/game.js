@@ -153,7 +153,12 @@ export class Game {
     this.audio.play('turn');
     this.hooks.onStart?.();
     this.pushHud();
-    const label = safeMode === 'practice' ? 'Treino livre' : safeMode === 'local' ? 'Vez do Jogador 1' : 'Sua vez';
+    const label =
+      safeMode === 'practice'
+        ? 'Treino livre'
+        : safeMode === 'local'
+          ? 'Vez do Jogador 1'
+          : 'Sua vez';
     this.hooks.toast?.(label, 'turn');
   }
 
@@ -198,7 +203,10 @@ export class Game {
           cup.fallT = Math.min(1, cup.fallT + dt * 2.6);
         }
         // dinâmica de tombamento (mola + impulso da bola)
-        if (cup.state === 'up' && (cup.tipKick > 0 || Math.abs(cup.tilt) > 0.001 || Math.abs(cup.tiltVel) > 0.001)) {
+        if (
+          cup.state === 'up' &&
+          (cup.tipKick > 0 || Math.abs(cup.tilt) > 0.001 || Math.abs(cup.tiltVel) > 0.001)
+        ) {
           cup.tiltVel += (cup.tipKick * 5.5 - cup.tilt * 170 - cup.tiltVel * 6.5) * dt;
           cup.tipKick = 0;
           cup.tilt += cup.tiltVel * dt;
@@ -371,7 +379,7 @@ export class Game {
           cup.fallDir = Math.random() < 0.5 ? -1 : 1;
         },
         onRest: (result) => this.resolveThrow(result),
-      },
+      }
     );
     this.sim.launch(v);
     this.acc = 0;
@@ -467,11 +475,12 @@ export class Game {
       this.registerHit(result.cup, b, false);
     } else {
       // qualquer contato com o copo (rim, parede, garganta) vira "Na borda!"
-      const touched = this.lastRimCup && this.lastRimCup.state === 'up'
-        ? this.lastRimCup
-        : this.sim && this.sim.lastCup && this.sim.lastCup.cup.state === 'up'
-          ? this.sim.lastCup.cup
-          : null;
+      const touched =
+        this.lastRimCup && this.lastRimCup.state === 'up'
+          ? this.lastRimCup
+          : this.sim && this.sim.lastCup && this.sim.lastCup.cup.state === 'up'
+            ? this.sim.lastCup.cup
+            : null;
       if (touched) this.registerRim(touched, b);
       else this.registerMiss(b);
     }
@@ -519,7 +528,7 @@ export class Game {
         pt.x,
         pt.y - 30,
         ['NA CESTA!', 'BOA!', '+1', 'CRAVOU!', 'PERFEITO!'][(Math.random() * 5) | 0],
-        '#ffd166',
+        '#ffd166'
       );
     }
 
@@ -692,7 +701,9 @@ export class Game {
     this.renderer.shake = this.renderer.reducedMotion ? 0 : 14;
     this.hooks.vibrate?.([40, 60, 60]);
 
-    const accuracy = statsPlayer.throws ? Math.round((statsPlayer.hits / statsPlayer.throws) * 100) : 0;
+    const accuracy = statsPlayer.throws
+      ? Math.round((statsPlayer.hits / statsPlayer.throws) * 100)
+      : 0;
     this.hooks.gameOver?.({
       mode: this.mode,
       winnerName: winner.name,

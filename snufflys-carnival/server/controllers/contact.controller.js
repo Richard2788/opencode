@@ -16,7 +16,8 @@ function clean(value, max) {
 // Exposto para testes (sanitização é lógica pura)
 exports.clean = clean;
 
-exports.create = async (req, res, next) => {  try {
+exports.create = async (req, res, next) => {
+  try {
     const { nome, email, mensagem } = req.body || {};
 
     const erros = [];

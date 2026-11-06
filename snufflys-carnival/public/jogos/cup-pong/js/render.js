@@ -26,16 +26,16 @@ export class Renderer {
     this.floaters = [];
     this.shake = 0;
     this.time = 0;
-    this.flashAlpha = 0;   // flash branco no acerto
-    this.zoom = 0;         // zoom dramático (slow-mo)
-    this.timeScale = 1;    // 1 = normal, <1 = slow-mo
-    this.heat = 0;         // vinheta de streak (0..1)
-    this.fever = false;    // modo EXTREME FEVER (último copo)
-    this.feverT = 0;       // tempo do banner de fever
-    this.feverFail = 0;    // tint de derrota dramática
+    this.flashAlpha = 0; // flash branco no acerto
+    this.zoom = 0; // zoom dramático (slow-mo)
+    this.timeScale = 1; // 1 = normal, <1 = slow-mo
+    this.heat = 0; // vinheta de streak (0..1)
+    this.fever = false; // modo EXTREME FEVER (último copo)
+    this.feverT = 0; // tempo do banner de fever
+    this.feverFail = 0; // tint de derrota dramática
     this.feverResult = ''; // '' | 'win' | 'lose'
     this.cam = { x: -1, y: -1, zoom: 0 }; // câmera; zoom 0 = centrado normal
-    this.camFollow = false;               // perseguição da bola no fever-throw
+    this.camFollow = false; // perseguição da bola no fever-throw
     this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.W = 390;
     this.H = 760;
@@ -99,7 +99,7 @@ export class Renderer {
 
   cupScreen(cup) {
     const p = this.project(cup.x, cup.z);
-    const rx = PHYS.CUP_TOP / PHYS.XU_M * p.hw;
+    const rx = (PHYS.CUP_TOP / PHYS.XU_M) * p.hw;
     return { x: p.x, y: p.y, rx, ry: rx * 0.36, hw: p.hw };
   }
 
@@ -270,7 +270,7 @@ export class Renderer {
     let y = rand(this.H * 0.2, this.H * 0.35);
     for (let i = 0; i < 6; i += 1) {
       pts.push({ x, y });
-      x += (this.W * 0.55) / 6 * (side ? -1 : 1) + rand(-14, 14);
+      x += ((this.W * 0.55) / 6) * (side ? -1 : 1) + rand(-14, 14);
       y += rand(30, 70);
     }
     this.rings.push({ bolt: pts, t: 0, life: 0.22, color: '255, 240, 140' });
@@ -288,9 +288,7 @@ export class Renderer {
     // === câmera com follow (EXTREME FEVER throw) ===
     let camTarget = { x: this.cx, y: this.H / 2, zoom: 1 };
     if (this.camFollow && !this.reducedMotion) {
-      const b = game.ball && game.ball.visible
-        ? this.project(game.ball.x, game.ball.z)
-        : null;
+      const b = game.ball && game.ball.visible ? this.project(game.ball.x, game.ball.z) : null;
       const cupP = game.feverCup ? this.cupScreen(game.feverCup) : null;
       let fx;
       let fy;
@@ -396,8 +394,12 @@ export class Renderer {
       const pulse = 0.55 + 0.45 * Math.sin(this.time * 4.2);
       const a = this.heat * (0.12 + 0.12 * pulse);
       const g = ctx.createRadialGradient(
-        this.W / 2, this.H / 2, Math.min(this.W, this.H) * 0.32,
-        this.W / 2, this.H / 2, Math.max(this.W, this.H) * 0.72,
+        this.W / 2,
+        this.H / 2,
+        Math.min(this.W, this.H) * 0.32,
+        this.W / 2,
+        this.H / 2,
+        Math.max(this.W, this.H) * 0.72
       );
       g.addColorStop(0, 'rgba(255, 214, 0, 0)');
       g.addColorStop(0.75, `rgba(255, 214, 0, ${a.toFixed(3)})`);
@@ -419,8 +421,12 @@ export class Renderer {
       ctx.fillStyle = `rgba(183, 28, 28, ${(this.feverFail * 0.16).toFixed(3)})`;
       ctx.fillRect(0, 0, this.W, this.H);
       const g2 = ctx.createRadialGradient(
-        this.W / 2, this.H / 2, Math.min(this.W, this.H) * 0.3,
-        this.W / 2, this.H / 2, Math.max(this.W, this.H) * 0.7,
+        this.W / 2,
+        this.H / 2,
+        Math.min(this.W, this.H) * 0.3,
+        this.W / 2,
+        this.H / 2,
+        Math.max(this.W, this.H) * 0.7
       );
       g2.addColorStop(0, 'rgba(0,0,0,0)');
       g2.addColorStop(1, `rgba(127, 16, 16, ${(this.feverFail * 0.4).toFixed(3)})`);
@@ -437,7 +443,10 @@ export class Renderer {
       const tt = this.feverT;
       if (life < 0 || tt < life) {
         const pop = Math.min(1, tt * 5);
-        const scale = (isWin ? 2.4 : 1.9) - (1 - pop) * 0.9 + (isWin || isLose ? Math.sin(tt * 5) * 0.03 : Math.sin(tt * 8) * 0.04);
+        const scale =
+          (isWin ? 2.4 : 1.9) -
+          (1 - pop) * 0.9 +
+          (isWin || isLose ? Math.sin(tt * 5) * 0.03 : Math.sin(tt * 8) * 0.04);
         const alpha = life < 0 ? 1 : tt > life - 0.35 ? (life - tt) / 0.35 : 1;
         const ty = this.H * 0.24 + Math.sin(tt * 6) * 5;
         ctx.save();
@@ -633,8 +642,8 @@ export class Renderer {
   drawCups(game, dt) {
     const cups = game.rack || [];
     // desenha do fundo para a frente (profundidade); caídos por último
-    const sorted = [...cups].sort((a, b) =>
-      (a.state === 'down') - (b.state === 'down') || b.z - a.z,
+    const sorted = [...cups].sort(
+      (a, b) => (a.state === 'down') - (b.state === 'down') || b.z - a.z
     );
     for (const cup of sorted) {
       if (cup.state === 'hit') {
@@ -665,7 +674,7 @@ export class Renderer {
         ry * 1.25,
         0,
         0,
-        TAU,
+        TAU
       );
     } else {
       ctx.beginPath();
@@ -706,11 +715,17 @@ export class Renderer {
 
   /* Desenha o copo VAZIO com origem no centro da boca em (x, y). */
   drawCupSprite(ctx, x, y, rx, ry, bodyH, cup, down) {
-
     // corpo (tronco de cone)
     const body = new Path2D();
     body.moveTo(x - rx, y);
-    body.bezierCurveTo(x - rx * 0.98, y + bodyH * 0.5, x - rx * 0.8, y + bodyH * 0.82, x - rx * 0.72, y + bodyH);
+    body.bezierCurveTo(
+      x - rx * 0.98,
+      y + bodyH * 0.5,
+      x - rx * 0.8,
+      y + bodyH * 0.82,
+      x - rx * 0.72,
+      y + bodyH
+    );
     body.quadraticCurveTo(x, y + bodyH + ry * 1.5, x + rx * 0.72, y + bodyH);
     body.bezierCurveTo(x + rx * 0.8, y + bodyH * 0.82, x + rx * 0.98, y + bodyH * 0.5, x + rx, y);
     body.closePath();
@@ -851,7 +866,13 @@ export class Renderer {
         ctx.globalAlpha = a;
         ctx.fillStyle = this.fever ? (i % 2 ? '#ffd600' : '#e53935') : '#fff6df';
         ctx.beginPath();
-        ctx.arc(tp.x, tp.y - t.h * (tp.hw / PHYS.XU_M), r * (0.35 + (i / ball.trail.length) * 0.5), 0, TAU);
+        ctx.arc(
+          tp.x,
+          tp.y - t.h * (tp.hw / PHYS.XU_M),
+          r * (0.35 + (i / ball.trail.length) * 0.5),
+          0,
+          TAU
+        );
         ctx.fill();
       }
       ctx.globalAlpha = 1;
