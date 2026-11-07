@@ -29,8 +29,16 @@ export class Renderer {
     this.flashAlpha = 0; // flash branco no acerto
     this.zoom = 0; // zoom dramático (slow-mo)
     this.timeScale = 1; // 1 = normal, <1 = slow-mo
+    this.slowHold = 0; // segundos (tempo REAL) restantes de slow-mo garantido
+    this.slowHoldScale = 0.35;
     this.heat = 0; // vinheta de streak (0..1)
     this.fever = false; // modo EXTREME FEVER (último copo)
+    this.fpsAvg = 60; // média deslizante de FPS (guard anti-crash)
+    this.lowPerf = false;
+    this.dprCap = null; // engrenagem de qualidade (lowPerf → 1.5)
+    this.rainbowCache = null;
+    this.cupSprites = new Map(); // sprite cache por raio (cupinho em offscreen)
+    this.spawnTasks = []; // spawns escalonados (anti-hitch)
     this.feverT = 0; // tempo do banner de fever
     this.feverFail = 0; // tint de derrota dramática
     this.feverResult = ''; // '' | 'win' | 'lose'
@@ -55,12 +63,31 @@ export class Renderer {
 
     this.W = W;
     this.H = H;
-    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // engrenage de qualidade: lowPerf pode derrubar o DPR (fpsAvg no render)
+    this.dpr = Math.min(window.devicePixelRatio || 1, this.dprCap || 2);
     this.canvas.width = Math.round(W * this.dpr);
     this.canvas.height = Math.round(H * this.dpr);
     this.computeLayout();
     this.buildBackground();
+    this.buildTable();
+    this.cupSprites.clear();
+    this.rainbowCache = null;
     this.cam = { x: -1, y: -1, zoom: 0 };
+  }
+
+  /* recria o backbuffer e os caches em offscreen com o DPR atual */
+  downscaleToDpr() {
+    this.dpr = Math.min(window.devicePixelRatio || 1, this.dprCap || 2);
+    this.canvas.width = Math.round(this.W * this.dpr);
+    this.canvas.height = Math.round(this.H * this.dpr);
+    this.buildBackground();
+    this.buildTable();
+    this.buildSpotlights();
+    this.cupSprites.clear();
+    this.rainbowCache = null;
+    this.heatGradKey = null;
+    this.failGradKey = null;
+    this.bannerGradKey = null;
   }
 
   computeLayout() {
@@ -193,15 +220,32 @@ export class Renderer {
     if (!this.reducedMotion) this.flashAlpha = strength;
   }
 
-  slowMo() {
+  slowMo(scale = 0.35, hold = 0) {
     if (!this.reducedMotion) {
-      this.timeScale = 0.35;
+      this.timeScale = scale;
       this.zoom = 1;
+      this.slowHold = hold;
+      this.slowHoldScale = scale;
     }
   }
 
   setHeat(v) {
     this.heat = this.reducedMotion ? 0 : clamp(v, 0, 1);
+  }
+
+  /* reset total de câmera e estados dramáticos (nova partida / menu) */
+  resetStates() {
+    this.cam = { x: -1, y: -1, zoom: 0 };
+    this.camFollow = false;
+    this.fever = false;
+    this.feverResult = '';
+    this.feverFail = 0;
+    this.feverT = 0;
+    this.timeScale = 1;
+    this.slowHold = 0;
+    this.zoom = 0;
+    this.heat = 0;
+    this.shake = 0;
   }
 
   /* =========================================================
@@ -226,8 +270,8 @@ export class Renderer {
       this.feverT = 0;
       this.flash(0.65);
       this.confetti();
-      this.confetti();
       if (!this.reducedMotion && pt) this.goldRain(pt);
+      if (pt) this.starBurst(pt);
       this.shake = this.reducedMotion ? 0 : 16;
     } else {
       this.feverResult = 'lose';
@@ -240,7 +284,7 @@ export class Renderer {
 
   /* chuva dourada derrapando em direção ao copo final */
   goldRain(pt) {
-    for (let i = 0; i < 90; i += 1) {
+    this.queueGen(() => {
       this.particles.push({
         x: rand(0, this.W),
         y: rand(-this.H * 0.4, -10),
@@ -256,7 +300,54 @@ export class Renderer {
         spin: rand(-12, 12),
         rot: rand(0, TAU),
       });
+    }, 45, 15);
+  }
+
+  /* estrelas de carnaval: saem de dentro do copo no fecho do EXTREME FEVER
+     (15–20 por disparo) — trail degradê arco-íris + giro, estilo Peggle */
+  /* Spawns escalonados: nada de 170 partículas num frame só (anti-hitch) */
+  queueGen(gen, count, per) {
+    this.spawnTasks.push({ gen, left: count, per });
+  }
+
+  drainSpawns() {
+    for (let i = this.spawnTasks.length - 1; i >= 0; i -= 1) {
+      const task = this.spawnTasks[i];
+      const n = Math.min(task.per, task.left);
+      for (let k = 0; k < n; k += 1) task.gen();
+      task.left -= n;
+      if (task.left <= 0) this.spawnTasks.splice(i, 1);
     }
+  }
+
+  starBurst(pt) {
+    const rx = pt.rx || 24;
+    const ry = pt.ry || 8;
+    const count = 15 + ((Math.random() * 6) | 0);
+    const bigTarget = Math.ceil(count * 0.4);
+    this.queueGen(() => {
+      const idx = Math.floor(rand(0, count)); // determina grandeza só na amostra
+      const big = idx < bigTarget;
+      const ang = -Math.PI * rand(0.05, 0.95);
+      this.particles.push({
+        x: pt.x + rand(-rx * 0.6, rx * 0.6),
+        y: pt.y + rand(-ry * 0.5, 0),
+        vx: Math.cos(ang) * rand(60, 150),
+        vy: Math.sin(ang) * rand(150, 320),
+        g: 300,
+        drag: 0.995,
+        t: 0,
+        life: rand(1.1, 2.2),
+        size: big ? rand(9, 15) : rand(4.5, 8),
+        color: '#ffd600',
+        hue: rand(0, 360),
+        shape: 'star',
+        trail: [],
+        spin: rand(-14, 14),
+        rot: rand(0, TAU),
+        starDelay: big ? 0 : rand(0, 0.25),
+      });
+    }, count, 8);
   }
 
   /* raios elétricos nas laterais, estilo Peggle */
@@ -273,7 +364,96 @@ export class Renderer {
       x += ((this.W * 0.55) / 6) * (side ? -1 : 1) + rand(-14, 14);
       y += rand(30, 70);
     }
-    this.rings.push({ bolt: pts, t: 0, life: 0.22, color: '255, 240, 140' });
+    this.rings.push({ bolt: pts, t: 0, life: 0.22, color: '255, 240, 140', hueCycle: this.fever });
+  }
+
+  /* ===== roda arco-íris pré-renderizada (luz do buraco no EXTREME FEVER) ===== */
+  buildFeverWheel() {
+    const size = 256;
+    const cv = document.createElement('canvas');
+    cv.width = size;
+    cv.height = size;
+    const g = cv.getContext('2d');
+    const c = size / 2;
+    const wedges = 40;
+    for (let i = 0; i < wedges; i += 1) {
+      const a0 = (i / wedges) * TAU;
+      const a1 = ((i + 1) / wedges) * TAU;
+      g.beginPath();
+      g.moveTo(c, c);
+      g.arc(c, c, c, a0, a1);
+      g.closePath();
+      g.fillStyle = `hsl(${Math.round((i / wedges) * 360)}, 100%, 58%)`;
+      g.fill();
+    }
+    // furo central: vira anel (o buraco do copo continua visível)
+    g.globalCompositeOperation = 'destination-out';
+    g.beginPath();
+    g.arc(c, c, c * 0.55, 0, TAU);
+    g.fill();
+    // amacia o contorno do anel (fade das bordas)
+    for (const [rc, alpha] of [[c * 0.92, 0.3], [c * 0.96, 0.5]]) {
+      g.lineWidth = 4;
+      g.strokeStyle = `rgba(0, 0, 0, ${alpha})`;
+      g.beginPath();
+      g.arc(c, c, rc, 0, TAU);
+      g.stroke();
+    }
+    this.feverWheel = cv;
+  }
+
+  /** Luz arco-íris GIRANDO E BRILHANDO na boca do último copo (2 drawImage/frame). */
+  drawFeverCupLight(game) {
+    if (!this.fever || this.lowPerf || !game.feverCup) return;
+    if (!this.feverWheel) this.buildFeverWheel();
+    const ctx = this.ctx;
+    const cs = this.cupScreen(game.feverCup);
+    const spinSpeed = this.reducedMotion ? 0.4 : 2.5;
+    const pulse = 0.62 + 0.3 * Math.sin(this.time * 7);
+    const r = cs.rx * 2.3;
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    // glow radial pulsante por baixo (disco branco-quente)
+    if (!this.feverGlow) {
+      const cv = document.createElement('canvas');
+      cv.width = 128;
+      cv.height = 128;
+      const g = cv.getContext('2d');
+      const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+      gr.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
+      gr.addColorStop(0.4, 'rgba(255, 240, 170, 0.4)');
+      gr.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      g.fillStyle = gr;
+      g.fillRect(0, 0, 128, 128);
+      this.feverGlow = cv;
+    }
+    const gr2 = cs.rx * 3.4;
+    ctx.globalAlpha = pulse * 0.55;
+    ctx.drawImage(this.feverGlow, cs.x - gr2, cs.y - gr2, gr2 * 2, gr2 * 2);
+
+    // roda arco-íris girando sobre a boca
+    ctx.globalAlpha = pulse * 0.9;
+    ctx.translate(cs.x, cs.y);
+    ctx.rotate(this.time * spinSpeed);
+    ctx.drawImage(this.feverWheel, -r, -r, r * 2, r * 2);
+    ctx.restore();
+
+    // anel arco-íris expandindo a cada ~0.5s (pool de rings, custo ~0)
+    if (!this.reducedMotion && this.time - (this.feverRingT || 0) > 0.5) {
+      this.feverRingT = this.time;
+      this.rings.push({
+        x: cs.x,
+        y: cs.y,
+        t: 0,
+        life: 0.8,
+        r0: cs.rx,
+        r1: cs.rx * 7,
+        color: '255, 214, 0',
+        hueCycle: true,
+      });
+    }
   }
 
   /* =========================================================
@@ -282,6 +462,27 @@ export class Renderer {
 
   render(game, dt) {
     this.time += dt;
+
+    // guard de performance: média deslizante de FPS (anti-crash)
+    if (dt > 0) {
+      const fps = 1 / dt;
+      this.fpsAvg = this.fpsAvg + (fps - this.fpsAvg) * 0.06;
+      // histerese: desliga qualidade abaixo de 45fps, volta acima de 56
+      if (this.fpsAvg < 45) this.lowPerf = true;
+      else if (this.fpsAvg > 56 && this.lowPerf) {
+        this.lowPerf = false;
+        this.rainbowCache = null; // regenera optando pela alta qualidade
+      }
+      // engrenagem de resolução: <40fps sustentados → DPR 1.5 (rebuild sprites)
+      if (this.fpsAvg < 40 && this.dprCap !== 1.5) {
+        this.dprCap = 1.5;
+        this.downscaleToDpr();
+      } else if (this.fpsAvg > 55 && this.dprCap === 1.5 && this.lowPerf === false) {
+        this.dprCap = null; // volta ao DPR nativo (≤2)
+        this.downscaleToDpr();
+      }
+    }
+
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
 
@@ -349,6 +550,7 @@ export class Renderer {
     this.drawTable(game);
     this.drawSpotlights(dt);
     this.drawCups(game, dt);
+    this.drawFeverCupLight(game);
     this.drawBall(game);
     this.drawAim(game);
     this.updateEffects(dt);
@@ -360,9 +562,29 @@ export class Renderer {
      Spotlights girando no fundo (luz de festa)
      ========================================================= */
 
+  /* sprite de spotlight pré-renderizado (antes: 2 gradientes radiais
+     full-canvas por frame) */
+  buildSpotlights() {
+    const size = 256;
+    for (const [name, col] of [['spotRed', '229, 57, 53'], ['spotGold', '255, 214, 0']]) {
+      const cv = document.createElement('canvas');
+      cv.width = size;
+      cv.height = size;
+      const g = cv.getContext('2d');
+      const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+      grad.addColorStop(0, `rgba(${col}, 0.10)`);
+      grad.addColorStop(0.5, `rgba(${col}, 0.035)`);
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      g.fillStyle = grad;
+      g.fillRect(0, 0, size, size);
+      this[name] = cv;
+    }
+  }
+
   drawSpotlights(dt) {
     // desenhados depois da mesa para dar vida; são suaves e giram devagar
-    if (!this.bg || this.reducedMotion) return;
+    if (!this.bg || this.reducedMotion || this.lowPerf) return;
+    if (!this.spotRed) this.buildSpotlights();
     const ctx = this.ctx;
     ctx.save();
     ctx.globalCompositeOperation = 'source-over';
@@ -371,13 +593,8 @@ export class Renderer {
       const px = this.cx + Math.sin(ang) * this.W * 0.36;
       const py = this.yFar - 30 + Math.cos(ang * 1.3) * 24;
       const r = this.W * (0.5 + i * 0.1);
-      const g = ctx.createRadialGradient(px, py, 0, px, py, r);
-      const col = i === 0 ? '229, 57, 53' : '255, 214, 0';
-      g.addColorStop(0, `rgba(${col}, 0.10)`);
-      g.addColorStop(0.5, `rgba(${col}, 0.035)`);
-      g.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, this.W, this.H * 0.7);
+      const sprite = i === 0 ? this.spotRed : this.spotGold;
+      ctx.drawImage(sprite, px - r, py - r, r * 2, r * 2);
     }
     ctx.restore();
   }
@@ -392,19 +609,26 @@ export class Renderer {
 
     if (this.heat > 0.01) {
       const pulse = 0.55 + 0.45 * Math.sin(this.time * 4.2);
+      // alpha quantizado em 32 passos: gradiente fica em cache (sem alloc/frame)
       const a = this.heat * (0.12 + 0.12 * pulse);
-      const g = ctx.createRadialGradient(
-        this.W / 2,
-        this.H / 2,
-        Math.min(this.W, this.H) * 0.32,
-        this.W / 2,
-        this.H / 2,
-        Math.max(this.W, this.H) * 0.72
-      );
-      g.addColorStop(0, 'rgba(255, 214, 0, 0)');
-      g.addColorStop(0.75, `rgba(255, 214, 0, ${a.toFixed(3)})`);
-      g.addColorStop(1, `rgba(229, 57, 53, ${(a * 1.3).toFixed(3)})`);
-      ctx.fillStyle = g;
+      const key = Math.max(1, Math.round(a * 32));
+      const aq = key / 32;
+      if (this.heatGradKey !== key) {
+        const g = ctx.createRadialGradient(
+          this.W / 2,
+          this.H / 2,
+          Math.min(this.W, this.H) * 0.32,
+          this.W / 2,
+          this.H / 2,
+          Math.max(this.W, this.H) * 0.72
+        );
+        g.addColorStop(0, 'rgba(255, 214, 0, 0)');
+        g.addColorStop(0.75, `rgba(255, 214, 0, ${aq.toFixed(4)})`);
+        g.addColorStop(1, `rgba(229, 57, 53, ${(aq * 1.3).toFixed(4)})`);
+        this.heatGrad = g;
+        this.heatGradKey = key;
+      }
+      ctx.fillStyle = this.heatGrad;
       ctx.fillRect(0, 0, this.W, this.H);
     }
 
@@ -416,22 +640,38 @@ export class Renderer {
       this.flashAlpha = 0;
     }
 
-    // tint dramático da FALHA no fever
+    // tint dramático da FALHA no fever (gradiente em cache por bucket)
     if (this.feverFail > 0.005) {
       ctx.fillStyle = `rgba(183, 28, 28, ${(this.feverFail * 0.16).toFixed(3)})`;
       ctx.fillRect(0, 0, this.W, this.H);
-      const g2 = ctx.createRadialGradient(
-        this.W / 2,
-        this.H / 2,
-        Math.min(this.W, this.H) * 0.3,
-        this.W / 2,
-        this.H / 2,
-        Math.max(this.W, this.H) * 0.7
-      );
-      g2.addColorStop(0, 'rgba(0,0,0,0)');
-      g2.addColorStop(1, `rgba(127, 16, 16, ${(this.feverFail * 0.4).toFixed(3)})`);
-      ctx.fillStyle = g2;
-      ctx.fillRect(0, 0, this.W, this.H);
+      const failKey = Math.round(this.feverFail * 12);
+      if (this.failGradKey !== failKey) {
+        const g2 = ctx.createRadialGradient(
+          this.W / 2,
+          this.H / 2,
+          Math.min(this.W, this.H) * 0.3,
+          this.W / 2,
+          this.H / 2,
+          Math.max(this.W, this.H) * 0.7
+        );
+        g2.addColorStop(0, 'rgba(0,0,0,0)');
+        g2.addColorStop(1, `rgba(127, 16, 16, ${(12 / 12 * 0.4).toFixed(4)})`);
+        this.failGrad = g2;
+        this.failGradKey = failKey;
+      }
+      if (this.failGrad) {
+        // alpha dinâmico por camada global (gradiente fixo no máximo)
+        ctx.save();
+        ctx.globalAlpha = 0.05 + this.feverFail * 0.95;
+        ctx.fillStyle = this.failGrad;
+        ctx.fillRect(0, 0, this.W, this.H);
+        ctx.restore();
+      }
+    }
+
+    // painéis de luz ARCO-ÍRIS nas bordas (Peggle SUPER FEVER) durante o fever
+    if (this.fever) {
+      this.drawFeverRainbow(this.feverT);
     }
 
     // banner EXTREME FEVER / FESTA TOTAL / QUASE!
@@ -459,11 +699,27 @@ export class Renderer {
         ctx.lineWidth = 9;
         ctx.strokeStyle = 'rgba(42, 20, 20, 0.85)';
         ctx.strokeText(banner, 0, 0);
-        const bg = ctx.createLinearGradient(0, -26, 0, 26);
-        bg.addColorStop(0, isLose ? '#b71c1c' : '#ffd600');
-        bg.addColorStop(0.5, isLose ? '#e53935' : '#ffffff');
-        bg.addColorStop(1, isLose ? '#7f1010' : '#e53935');
-        ctx.fillStyle = bg;
+        // gradiente ARCO-ÍRIS vibrante animado (matiz girando) — em cache
+        // por bucket de 100ms em vez de por frame
+        const bKey = `${isLose ? 'L' : 'F'}${Math.round(this.time * 10)}`;
+        if (this.bannerGradKey !== bKey) {
+          this.bannerGradKey = bKey;
+          if (!isLose) {
+            const bg = ctx.createLinearGradient(-190, -26, 190, 26);
+            const hueShift = this.time * 140;
+            for (let s = 0; s <= 6; s += 1) {
+              bg.addColorStop(s / 6, `hsl(${(hueShift + s * 60) % 360}, 100%, 60%)`);
+            }
+            this.bannerGrad = bg;
+          } else {
+            const bg = ctx.createLinearGradient(0, -26, 0, 26);
+            bg.addColorStop(0, '#b71c1c');
+            bg.addColorStop(0.5, '#e53935');
+            bg.addColorStop(1, '#7f1010');
+            this.bannerGrad = bg;
+          }
+        }
+        ctx.fillStyle = this.bannerGrad;
         ctx.fillText(banner, 0, 0);
         ctx.restore();
         // raios elétricos durante o fever
@@ -474,20 +730,84 @@ export class Renderer {
     }
   }
 
+  /* painéis de luz arco-íris animados nas bordas + overlay em onda,
+     estilo Peggle SUPER FEVER (mais vibrante) */
+  /* painéis de luz arco-íris nas bordas, estilo Peggle SUPER FEVER.
+     Custo controlado: gradientes cacheados e regenerados a cada ~100ms
+     (não por frame); sem overlay full-canvas. */
+  drawFeverRainbow(tt) {
+    if (this.fpsAvg < 45) return; // guard: sem painéis em queda de FPS
+    const ctx = this.ctx;
+    const BUCKET = 0.1; // s
+
+    // regenera gradientes apenas 1x por bucket de 100ms
+    if (!this.rainbowCache || this.time - this.rainbowCache.at > BUCKET) {
+      const hue0 = this.time * 180;
+      const bands = 6;
+      const build = (side) => {
+        const edgeX = side ? this.W : 0;
+        const g = ctx.createLinearGradient(edgeX, 0, side ? this.W * 0.84 : this.W * 0.16, 0);
+        for (let s = 0; s <= bands; s += 1) {
+          const hue = (hue0 + s * 60 + (side ? 30 : 0)) % 360;
+          g.addColorStop(s / bands, `hsla(${hue}, 100%, 62%, 0.5)`);
+        }
+        g.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        return g;
+      };
+      const sc = ctx.createLinearGradient(0, -60, 0, 60);
+      sc.addColorStop(0, 'rgba(255, 255, 255, 0)');
+      sc.addColorStop(0.5, 'hsla(54, 100%, 80%, 0.45)');
+      sc.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      this.rainbowCache = { at: this.time, left: build(0), right: build(1), strike: sc };
+    }
+
+    // alpha respirando altera só globalAlpha (grátis), não o gradiente
+    const breathe = 0.6 + Math.sin(tt * 9) * 0.3;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = breathe;
+    ctx.fillStyle = this.rainbowCache.left;
+    ctx.fillRect(0, 0, this.W * 0.16, this.H);
+    ctx.fillStyle = this.rainbowCache.right;
+    ctx.fillRect(this.W * 0.84, 0, this.W * 0.16, this.H);
+    // strike de luz compartilhado: posição ondulante por translate
+    ctx.globalAlpha = breathe * 0.8;
+    const strikeY = this.H * 0.5 + Math.sin(tt * 5.2) * this.H * 0.3;
+    ctx.translate(0, strikeY);
+    ctx.fillStyle = this.rainbowCache.strike;
+    ctx.fillRect(0, 0, this.W * 0.16, 120);
+    ctx.fillRect(this.W * 0.84, 0, this.W * 0.16, 120);
+    ctx.restore();
+  }
+
   /* =========================================================
      Table
      ========================================================= */
 
-  drawTable(game) {
-    const ctx = this.ctx;
-    const { cx, yNear, yFar, halfNear, halfFar, W } = this;
+  /* Pre-render da mesa NUMA VEZ por resize (era o hotspot nº 1: blur + shadow
+     + ~7 gradientes por frame). No frame, drawTable = 1 drawImage. */
+  buildTable() {
+    const { cx, yNear, yFar, halfNear, halfFar, W, H, dpr } = this;
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(W * dpr);
+    cv.height = Math.round(H * dpr);
+    const ctx = cv.getContext('2d');
+    ctx.scale(dpr, dpr);
 
-    // floor shadow
+    // sombra no chão: pintada em camadas (SEM ctx.filter — blur de FILTER
+    // roda no CPU e era o maior custo do jogo)
     ctx.save();
-    ctx.fillStyle = 'rgba(127, 16, 16, 0.22)';
-    ctx.filter = 'blur(18px)';
+    ctx.fillStyle = 'rgba(127, 16, 16, 0.10)';
     ctx.beginPath();
-    ctx.ellipse(cx, yNear + 12, halfNear * 1.05, 26, 0, 0, TAU);
+    ctx.ellipse(cx, yNear + 12, halfNear * 1.14, 32, 0, 0, TAU);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(127, 16, 16, 0.14)';
+    ctx.beginPath();
+    ctx.ellipse(cx, yNear + 12, halfNear * 1.08, 28, 0, 0, TAU);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(127, 16, 16, 0.14)';
+    ctx.beginPath();
+    ctx.ellipse(cx, yNear + 12, halfNear * 1.02, 24, 0, 0, TAU);
     ctx.fill();
     ctx.restore();
 
@@ -620,6 +940,18 @@ export class Renderer {
     ctx.fillStyle = edge;
     ctx.fillRect(0, yNear - 40, W, 50);
 
+    this.tableCanvas = cv;
+  }
+
+  drawTable(game) {
+    const ctx = this.ctx;
+    if (this.tableCanvas) {
+      ctx.drawImage(this.tableCanvas, 0, 0, this.W, this.H);
+    } else {
+      this.buildTable();
+      ctx.drawImage(this.tableCanvas, 0, 0, this.W, this.H);
+    }
+
     // decorative ball resting on the table when idle / aiming
     if (['menu', 'over', 'aim', 'cpu-aim'].includes(game.phase)) {
       const p = this.project(0.02, 0.115);
@@ -693,7 +1025,8 @@ export class Renderer {
       ctx.translate(p.x, p.y + bodyH * 0.8);
       ctx.rotate(angle);
       ctx.scale(1, squash);
-      this.drawCupSprite(ctx, 0, -bodyH, rx, ry, bodyH, cup, down, 0);
+      const s = this.cupSprite(rx, ry, bodyH);
+      ctx.drawImage(s.canvas, -s.ox, -bodyH - s.oy, s.w, s.h);
       ctx.restore();
       return;
     }
@@ -709,12 +1042,44 @@ export class Renderer {
     ctx.globalAlpha = alpha;
     ctx.translate(p.x + wobble, p.y + sink);
     ctx.rotate(tilt);
-    this.drawCupSprite(ctx, 0, 0, rx, ry, bodyH, cup, false, 0);
+    const s = this.cupSprite(rx, ry, bodyH);
+    ctx.drawImage(s.canvas, -s.ox, -s.oy, s.w, s.h);
     ctx.restore();
   }
 
-  /* Desenha o copo VAZIO com origem no centro da boca em (x, y). */
-  drawCupSprite(ctx, x, y, rx, ry, bodyH, cup, down) {
+  /* Sprite do copo VAZIO pré-renderizado por raio (antes: 2 gradientes +
+     5 paths por copo, por frame). Origem do sprite = centro da boca. */
+  cupSprite(rx, ry, bodyH) {
+    // bucket sempre PARA CIMA (nunca menor que o raio real) — evita aro cortado
+    const bucket = Math.max(8, Math.ceil(rx * 2) / 2);
+    let s = this.cupSprites.get(bucket);
+    if (s) return s;
+
+    const rb = bucket;
+    const rr = rb * 0.36;
+    const bh = rb * 1.42;
+    const pad = 6;
+    const w = Math.ceil(rb * 2 + pad * 2);
+    const oy = Math.ceil(rr + pad);   // espaço TOTAL acima da boca: aro ±ry
+    const bot = Math.ceil(bh + rr * 1.9 + pad);
+    const h = oy + bot;
+    const ox = w / 2;   // centro da boca dentro do sprite
+
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(w * this.dpr);
+    cv.height = Math.round(h * this.dpr);
+    const ctx = cv.getContext('2d');
+    ctx.scale(this.dpr, this.dpr);
+    this.paintCupBody(ctx, ox, oy, rb, rr, bh);
+
+    s = { canvas: cv, w, h, ox, oy, key: bucket };
+    this.cupSprites.set(bucket, s);
+    // sem clear por tamanho: buckets são poucos e discretos; o cache só
+    // evapora em resize/DPR-gear (evitar thrash justo no pico do fever)
+    return s;
+  }
+
+  paintCupBody(ctx, x, y, rx, ry, bodyH) {
     // corpo (tronco de cone)
     const body = new Path2D();
     body.moveTo(x - rx, y);
@@ -864,7 +1229,12 @@ export class Renderer {
         const tp = this.project(t.x, t.z);
         const a = (i / ball.trail.length) * (this.fever ? 0.55 : 0.24);
         ctx.globalAlpha = a;
-        ctx.fillStyle = this.fever ? (i % 2 ? '#ffd600' : '#e53935') : '#fff6df';
+        // trail ARCO-ÍRIS no EXTREME FEVER: cada ponto com matiz ciclada
+        if (this.fever) {
+          ctx.fillStyle = `hsl(${(this.time * 220 + i * 45) % 360}, 100%, 62%)`;
+        } else {
+          ctx.fillStyle = '#fff6df';
+        }
         ctx.beginPath();
         ctx.arc(
           tp.x,
@@ -1038,7 +1408,7 @@ export class Renderer {
   confetti() {
     if (this.reducedMotion) return;
     const colors = ['#e53935', '#ffd600', '#b71c1c', '#fff1bf', '#f2a900', '#ffffff'];
-    for (let i = 0; i < 110; i += 1) {
+    this.queueGen(() => {
       this.particles.push({
         x: rand(0, this.W),
         y: rand(-this.H * 0.25, -10),
@@ -1054,11 +1424,18 @@ export class Renderer {
         spin: rand(-8, 8),
         rot: rand(0, TAU),
       });
-    }
+    }, 110, 22);
   }
 
   updateEffects(dt) {
     const max = MAX_PARTICLES;
+    this.drainSpawns(); // spawns escalonados: máx ~n por frame
+    // slow-mo GARANTIDO (cena de pânico do último copo): pinado em tempo REAL
+    if (this.slowHold > 0 && !this.reducedMotion) {
+      this.slowHold = Math.max(0, this.slowHold - dt);
+      this.timeScale = Math.min(this.timeScale, this.slowHoldScale);
+      if (this.slowHold <= 0) this.slowHoldScale = 0.35;
+    }
     // EXTREME FEVER: tempo travado em 0.25 até o desfecho
     if (this.fever) {
       this.timeScale = Math.min(this.timeScale, 0.25);
@@ -1072,12 +1449,17 @@ export class Renderer {
     if (this.feverFail > 0) this.feverFail = Math.max(0, this.feverFail - dt * 0.8);
     for (const p of this.particles) {
       p.t += dt;
+      if (p.t <= (p.starDelay || 0)) continue; // estrela pequena ainda nasceu
       p.vy += p.g * dt;
       p.vx *= p.drag;
       p.vy *= p.drag;
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.rot += p.spin * dt;
+      if (p.shape === 'star' && !this.reducedMotion && !this.lowPerf) {
+        p.trail.push({ x: p.x, y: p.y });
+        if (p.trail.length > 11) p.trail.shift();
+      }
     }
     if (this.particles.length > max) {
       this.particles.splice(0, this.particles.length - max);
@@ -1100,14 +1482,18 @@ export class Renderer {
     for (const r of this.rings) {
       const p = r.t / r.life;
       const ctx2 = ctx;
+      // cor: aceita "r,g,b" legado OU color CSS completo (hsl etc.)
+      const stroke = r.color.includes('(') ? r.color : `rgb(${r.color})`;
       if (r.bolt) {
         // raio elétrico (Peggle lightning)
         ctx2.save();
         ctx2.globalAlpha = (1 - p) * 0.95;
-        ctx2.strokeStyle = `rgb(${r.color})`;
+        ctx2.strokeStyle = r.hueCycle
+          ? `hsl(${(this.time * 240) % 360}, 100%, 66%)`
+          : stroke;
         ctx2.lineWidth = 2.4;
-        ctx2.shadowColor = 'rgba(255, 214, 0, 0.9)';
-        ctx2.shadowBlur = 12;
+        ctx2.shadowColor = stroke;
+        ctx2.shadowBlur = r.hueCycle ? 10 : 12;
         ctx2.beginPath();
         ctx2.moveTo(r.bolt[0].x, r.bolt[0].y);
         for (const seg of r.bolt.slice(1)) ctx2.lineTo(seg.x, seg.y);
@@ -1118,7 +1504,9 @@ export class Renderer {
       const radius = lerp(r.r0, r.r1, p);
       ctx.save();
       ctx.globalAlpha = (1 - p) * 0.7;
-      ctx.strokeStyle = `rgb(${r.color})`;
+      ctx.strokeStyle = r.hueCycle
+        ? `hsl(${(this.time * 240 + (r.x + r.y) * 0.7) % 360}, 100%, 64%)`
+        : stroke;
       ctx.lineWidth = 2 * (1 - p) + 0.5;
       ctx.beginPath();
       ctx.arc(r.x, r.y, radius, 0, TAU);
@@ -1128,10 +1516,62 @@ export class Renderer {
 
     for (const p of this.particles) {
       const alpha = clamp(1 - p.t / p.life, 0, 1);
+      if (p.t <= (p.starDelay || 0)) continue; // ainda não nasceu
       ctx.save();
       ctx.globalAlpha = alpha;
       ctx.fillStyle = p.color;
-      if (p.shape === 'rect') {
+
+      if (p.shape === 'star') {
+        // estrela de 5 pontas — trail em UM caminho contínuo (anti-lag:
+        // sem shadowBlur por segmento, cor única por estrela)
+        ctx.globalCompositeOperation = 'lighter';
+        const hueNow = (p.hue + this.time * 140) % 360;
+        const accent = `hsl(${hueNow}, 100%, 62%)`;
+        if (p.trail && p.trail.length > 2) {
+          // stride 2: metade dos pontos, traço contínuo
+          ctx.save();
+          ctx.globalAlpha = alpha * 0.45;
+          ctx.strokeStyle = accent;
+          ctx.lineWidth = p.size * 0.55;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.beginPath();
+          for (let i = 0; i < p.trail.length; i += 2) {
+            if (i === 0) ctx.moveTo(p.trail[0].x, p.trail[0].y);
+            else ctx.lineTo(p.trail[i].x, p.trail[i].y);
+          }
+          if ((p.trail.length - 1) % 2) ctx.lineTo(p.trail[p.trail.length - 1].x, p.trail[p.trail.length - 1].y);
+          ctx.stroke();
+          // núcleo claro interno (2º stroke, barato)
+          ctx.globalAlpha = alpha * 0.65;
+          ctx.strokeStyle = '#fff7d6';
+          ctx.lineWidth = Math.max(1, p.size * 0.16);
+          ctx.stroke();
+          ctx.restore();
+        }
+        // corpo: gradiente dourado→arco-íris; glow sombrio só se haute perf
+        ctx.globalAlpha = alpha;
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        const sg = ctx.createLinearGradient(0, -p.size, 0, p.size);
+        sg.addColorStop(0, '#fff7d6');
+        sg.addColorStop(0.45, accent);
+        sg.addColorStop(1, '#ffd600');
+        ctx.fillStyle = sg;
+        if (!this.lowPerf && p.size > 8) {
+          ctx.shadowColor = accent;
+          ctx.shadowBlur = 6;
+        }
+        ctx.beginPath();
+        for (let k = 0; k < 10; k += 1) {
+          const rr = k % 2 ? p.size * 0.42 : p.size;
+          const aa = -Math.PI / 2 + (k * Math.PI) / 5;
+          if (k === 0) ctx.moveTo(Math.cos(aa) * rr, Math.sin(aa) * rr);
+          else ctx.lineTo(Math.cos(aa) * rr, Math.sin(aa) * rr);
+        }
+        ctx.closePath();
+        ctx.fill();
+      } else if (p.shape === 'rect') {
         ctx.translate(p.x, p.y);
         ctx.rotate(p.rot);
         ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size * 0.5);

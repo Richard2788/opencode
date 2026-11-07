@@ -1,4 +1,7 @@
-import { DIFFICULTIES, RACK_ROWS, RACK_Z, RACK_Z_STEP, CUP_SPACING, PHYS } from './config.js';
+import {
+  DIFFICULTIES, PHYS,
+  PRACTICE_MAX_CUPS, PRACTICE_SHAPES, rackPositions,
+} from './config.js';
 import { BallSim, mToXu, mToZu, solveThrow, xuToM, zuToM } from './physics.js';
 import { saveStore } from './store.js';
 
@@ -12,32 +15,38 @@ function gauss() {
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
-function makeCups() {
+function makeCups(shape, count) {
+  // forma: 'pyramid' (padrão da rack real) | diamond | line | circle | v | random
+  const s = shape || 'pyramid';
+  const n = s === 'pyramid' && count == null ? 10 : clampCount(count);
+  const positions = rackPositions(s, n);
   const cups = [];
-  RACK_ROWS.forEach((count, row) => {
-    for (let i = 0; i < count; i += 1) {
-      cups.push({
-        id: `c-${row}-${i}`,
-        x: (i - (count - 1) / 2) * CUP_SPACING,
-        z: RACK_Z + row * RACK_Z_STEP,
-        state: 'up', // 'up' | 'down' (tombado) | 'hit' (sucumbido)
-        anim: 0,
-        wobble: 0,
-        tilt: 0,
-        tiltVel: 0,
-        tipKick: 0,
-        fallT: 0,
-        fallDir: 1,
-      });
-    }
+  positions.forEach(({ x, z }, idx) => {
+    cups.push({
+      id: `c-${idx}`,
+      x,
+      z,
+      state: 'up', // 'up' | 'down' (tombado) | 'hit' (sucumbido)
+      anim: 0,
+      wobble: 0,
+      tilt: 0,
+      tiltVel: 0,
+      tipKick: 0,
+      fallT: 0,
+      fallDir: 1,
+    });
   });
   return cups;
 }
 
-function makePlayer(name) {
+function clampCount(n) {
+  return Math.max(1, Math.min(PRACTICE_MAX_CUPS, Math.round(Number(n) || 10)));
+}
+
+function makePlayer(name, shape, count) {
   return {
     name,
-    cups: makeCups(),
+    cups: makeCups(shape, count),
     throws: 0,
     hits: 0,
   };
@@ -64,6 +73,10 @@ export class Game {
     this.lastMode = 'cpu';
     this.phase = 'menu';
     this.paused = false;
+    // treino livre: forma + quantidade (persistem no store)
+    const prac = this.store.settings.practice || {};
+    this.practiceShape = PRACTICE_SHAPES.some((s) => s.id === prac.shape) ? prac.shape : 'pyramid';
+    this.practiceCount = clampCount(prac.count);
     this.players = [makePlayer('Você'), makePlayer('CPU')];
     this.turn = 0;
     this.throwsLeft = 2;
@@ -119,15 +132,38 @@ export class Game {
     this.acc = 0;
     this.pendingHit = null;
     this.lastRimCup = null;
+    this.feverThrow = false;
+    this.feverArmed = false;
+    this.feverNear = false;
+    this.feverOutcome = null;
+    this.feverOutcomeT = 0;
+    this.feverOutcomeHold = 0;
+    this.feverWaitT = 0;
+    this.cpuTarget = null;
+    this.renderer.resetStates?.();
+  }
+
+  /* treino: ajustar forma/quantidade dos copos (aplica no rack imediatamente) */
+  setPractice(shape, count) {
+    if (shape && PRACTICE_SHAPES.some((s) => s.id === shape)) this.practiceShape = shape;
+    if (count != null) this.practiceCount = clampCount(count);
+    this.store.settings.practice = { shape: this.practiceShape, count: this.practiceCount };
+    saveStore(this.store);
+    if (this.mode === 'practice') {
+      this.players[1].cups = makeCups(this.practiceShape, this.practiceCount);
+      this.pushHud();
+    }
   }
 
   start(mode) {
     const safeMode = mode === 'local' || mode === 'practice' ? mode : 'cpu';
     this.mode = safeMode;
     this.lastMode = safeMode;
+    const p2name = safeMode === 'local' ? 'Jogador 2' : safeMode === 'practice' ? 'Alvos' : 'CPU';
     this.players = [
       makePlayer('Você'),
-      makePlayer(safeMode === 'local' ? 'Jogador 2' : safeMode === 'practice' ? 'Alvos' : 'CPU'),
+      makePlayer(p2name, safeMode === 'practice' ? this.practiceShape : undefined,
+        safeMode === 'practice' ? this.practiceCount : undefined),
     ];
     if (safeMode === 'local') this.players[0].name = 'Jogador 1';
 
@@ -148,9 +184,18 @@ export class Game {
     this.acc = 0;
     this.pendingHit = null;
     this.lastRimCup = null;
+    this.feverNear = false;
+    this.feverThrow = false;
+    this.feverArmed = false;
+    this.feverOutcome = null;
+    this.feverOutcomeT = 0;
+    this.feverOutcomeHold = 0;
+    this.feverWaitT = 0;
+    this.renderer.resetStates?.(); // câmera/zoom/fever/slow-mo de volta ao neutro
 
     this.audio.unlock();
     this.audio.play('turn');
+    this.audio.stopFeverMusic(600); // nada de música órfã de partida anterior
     this.hooks.onStart?.();
     this.pushHud();
     const label =
@@ -167,7 +212,8 @@ export class Game {
   }
 
   toMenu() {
-    this.resetDemo();
+    this.audio.stopFeverMusic(600);
+    this.resetDemo(); // reset completo de estado + câmera, conserva stats
     this.pushHud();
   }
 
@@ -194,6 +240,36 @@ export class Game {
 
   update(dt) {
     if (this.paused) return;
+
+    // veredito do último copo: aplica APÓS o hold de slow-mo (tempo em
+    // real — o dt chega escalado pelo timeScale do renderer); fail-safe
+    // força o veredito se o relógio ficar preso (pause/throttle/tab)
+    if (this.feverOutcome) {
+      if (this.feverOutcomeHold > 0) {
+        const ts = this.renderer.timeScale > 0 ? this.renderer.timeScale : 1;
+        this.feverOutcomeT += dt / ts;
+        if (this.feverOutcomeT >= this.feverOutcomeHold + 1.5) {
+          this.feverOutcomeT = this.feverOutcomeHold; // força o veredito
+        }
+      }
+      this.applyFeverOutcome(); // guarda interno respeita o relógio
+    } else {
+      this.checkFeverTimeout(dt); // 1.5s sem entrar = veredito de erro
+    }
+
+    // mira da CPU: desliza do centro ao alvo; pontos do preview acompanham
+    if (this.phase === 'cpu-aim' && this.cpuThinking && this.cpuTarget) {
+      this.cpuAimT = Math.min(1.05, (this.cpuAimT || 0) + dt);
+      const t = Math.min(1, this.cpuAimT / 1.0);
+      const e = 1 - (1 - t) * (1 - t); // ease-out
+      this.aim.x = this.cpuAimFrom.x + (this.cpuTarget.x - this.cpuAimFrom.x) * e;
+      this.aim.z = this.cpuAimFrom.z + (this.cpuTarget.z - this.cpuAimFrom.z) * e;
+      this.cpuPrevTimer = (this.cpuPrevTimer || 0) + dt;
+      if (this.cpuPrevTimer > 0.09) {
+        this.cpuPrevTimer = 0;
+        this.updatePreview();
+      }
+    }
 
     for (const player of this.players) {
       for (const cup of player.cups) {
@@ -365,6 +441,7 @@ export class Game {
         onRail: () => this.playThrottled('bounce', 90),
         onRim: (cs, pos, imp) => this.onRimContact(cs, pos, imp),
         onEnter: (cs, pos) => this.onCupEnter(cs),
+        onApproach: (cs, pos) => this.onFeverApproach(cs, pos),
         onWallIn: () => this.playThrottled('rim', 90),
         onCupBody: (cs, imp) => {
           const cup = cs.cup;
@@ -430,17 +507,87 @@ export class Game {
       this.slowMoThisThrow = true;
       this.renderer.slowMo?.();
     }
+    // ÚLTIMO COPO: TOCA A BORDA = ERRO — encerra a cena AGORA no contato
+    // (não espera a bola rolar pela mesa); se depois cair dentro, o fever
+    // volta a ser montado pelo onCupEnter e a música estoura de novo.
+    if (this.feverThrow && !this.feverArmed && this.feverNear) {
+      this.closeFeverOnRim(pos);
+    }
     const pt = this.projectPos(mToXu(pos.x), mToZu(pos.d));
     this.renderer.bounce(pt.x, pt.y - 12);
     this.hooks.vibrate?.(6);
+  }
+
+  /* ÚLTIMO COPO: TOCA A BORDA OU ERRA — o desfecho NÃO é instantâneo:
+     estaga o resultado, dá 1s de slow-mo pino (tempo real) e aí aplica.
+     Se no meio do suspense a bola cair dentro, o outcome estagado é
+     cancelado e o EXTREME FEVER toma conta (música estoura de novo). */
+  closeFeverOnRim(pos) {
+    this.stageFeverOutcome(mToXu(pos.x), mToZu(pos.d));
+  }
+
+  stageFeverOutcome(xu, zu) {
+    if (!this.feverNear || this.feverOutcome) return; // 1 vez; onEnter cancela
+    const pt = this.projectPos(xu, zu);
+    const hold = this.renderer.reducedMotion ? 0 : 1.5;
+    this.feverOutcome = { win: false, pt };
+    this.feverOutcomeT = 0;
+    this.feverOutcomeHold = hold;
+    if (hold > 0) this.renderer.slowMo?.(0.22, hold); // 1.5s pino antes do veredito
+  }
+
+  /* relógio da cena: se em 1.5s a bola NÃO entrou no buraco, o veredito
+     de erro é aplicado na hora e o EXTREME FEVER é invalidado (o guard
+     `!feverThrow` impede o onCupEnter de remontar depois do prazo). */
+  checkFeverTimeout(dt) {
+    if (!this.feverThrow || !this.feverNear || this.feverArmed || this.feverOutcome) return;
+    const ts = this.renderer.timeScale > 0 ? this.renderer.timeScale : 1;
+    this.feverWaitT += dt / ts;
+    if (this.feverWaitT < 1.5) return;
+    this.feverThrow = false; // invalida o fever: nada mais remonta a cena
+    this.feverOutcome = { win: false, pt: this.projectPos(this.ball.x, this.ball.z) };
+    this.feverOutcomeT = 0;
+    this.feverOutcomeHold = 0; // sem hold extra: o prazo de 1.5s já passou
+    this.applyFeverOutcome();
+  }
+
+  applyFeverOutcome() {
+    const o = this.feverOutcome;
+    if (!o) return;
+    if (this.feverOutcomeT < this.feverOutcomeHold) return; // guarda pelo relógio
+    this.feverOutcome = null;
+    this.feverOutcomeT = 0;
+    this.feverOutcomeHold = 0;
+    this.feverNear = false; // resolveThrow não refaz o desfecho de derrota
+    this.renderer.camFollow = false; // timeout encerra o throw antes do fim
+    this.renderer.endFever?.(false, o.pt);
+    this.audio.duckFeverMusic();
+    this.hooks.toast?.('A bola escapou! 😱');
+    this.hooks.vibrate?.(40);
+  }
+
+  /* cena de PÂNICO no último copo: a bola está caindo quase na boca —
+     música já estoura e slow-mo garante ~1s de tempo real ANTES do contato
+     (entre ou raspe, a plateia já gritou) */
+  onFeverApproach() {
+    if (!this.feverThrow || this.feverNear) return;
+    this.feverNear = true;
+    this.feverWaitT = 0;
+    this.renderer.slowMo?.(0.22, 1.0); // 1s de slow-mo pino (tempo real)
+    this.renderer.startFever?.(); // dramaturgia: banner + calor já entram
+    this.audio.playFeverMusic();
   }
 
   /* bola cruzou o rim POR DENTRO>PONTO DE NÃO-RETORNO: estoura o EXTREME FEVER */
   onCupEnter(cs) {
     if (!this.feverThrow || this.feverArmed) return;
     this.feverArmed = true;
+    this.feverOutcome = null; // cancela veredito estagado: entrou = vitória
+    this.feverOutcomeT = 0;
+    this.feverWaitT = 0; // cena vencida na vitória: relógio de não-entrada para
     this.renderer.startFever?.();
     this.audio.play('fever');
+    this.audio.playFeverMusic(); // MÚSICA estoura com o fever
     this.hooks.vibrate?.([30, 60, 30, 60, 30]);
   }
 
@@ -488,20 +635,44 @@ export class Game {
     // desfecho do EXTREME FEVER: só se a bola ENTROU na boca (feverArmed)
     if (this.feverArmed) {
       const win = result.kind === 'cup' || Boolean(this.pendingHit);
-      const pt = win
+      let pt = win
         ? this.projectPos((result.cup || this.pendingHit).x, (result.cup || this.pendingHit).z)
         : this.projectPos(b.x, b.z);
-      if (win) this.audio.play('feverWin');
-      else this.audio.play('feverLose');
+      if (win) {
+        // escala de tela do copo para os efeitos (estrelas nascem na boca)
+        const cupRef = result.cup || this.pendingHit || this.feverCup;
+        const cs = cupRef && this.renderer.cupScreen ? this.renderer.cupScreen(cupRef) : null;
+        if (cs) pt = { ...pt, rx: cs.rx, ry: cs.ry };
+      }
+      if (win) {
+        this.audio.play('feverWin');
+        this.audio.play('feverStars'); // camada das estrelas nascendo do copo
+        // música SEGUE tocando: começa a diminuir só no fim da partida
+      } else {
+        this.audio.play('feverLose');
+        this.audio.duckFeverMusic(); // TOM desce rápido até sumir
+      }
       this.renderer.endFever?.(win, pt);
       if (win) this.hooks.toast?.('EXTREME FEVER! 🔥🎉', 'hot');
       else this.hooks.toast?.('A bola escapou! 😱');
       this.hooks.vibrate?.(win ? [80, 40, 80, 120] : 40);
     }
+    // RASPA/ERRO no último copo (não entrou): se a plateia já viu a bola
+    // quase entrar (feverNear), NÃO aplica na hora — 1s de slow-mo pino
+    // e o veredito cai depois (applyFeverOutcome); erros distantes seguem
+    // sem estardalhaço.
+    if (this.feverThrow && !this.feverArmed && this.feverNear) {
+      this.stageFeverOutcome(b.x, b.z);
+    }
     if (this.feverThrow || this.feverArmed) {
       this.renderer.camFollow = false; // câmera volta, com easing, ao enquadramento normal
       this.feverThrow = false;
       this.feverArmed = false;
+      this.feverNear = false;
+      this.feverOutcome = null;
+      this.feverOutcomeT = 0;
+      this.feverOutcomeHold = 0;
+      this.feverWaitT = 0;
       this.feverCup = null;
     }
 
@@ -579,7 +750,7 @@ export class Game {
         this.hooks.toast?.('Rack limpo! Novo rack…', 'good');
         this.audio.play('refill');
         this.schedule(0.55, () => {
-          this.players[1].cups = makeCups();
+          this.players[1].cups = makeCups(this.practiceShape, this.practiceCount);
           this.throwsLeft = 2;
           this.phase = 'aim';
           this.pushHud();
@@ -661,17 +832,27 @@ export class Game {
       const sx = cs.x + gauss() * sigma;
       const sy = cs.y + gauss() * sigma * 0.8;
       const plane = this.renderer.unproject(sx, sy);
-      this.aim.x = clamp(plane.x, -0.94, 0.94);
-      this.aim.z = clamp(plane.z, 0.56, 0.965);
+      this.cpuTarget = {
+        x: clamp(plane.x, -0.94, 0.94),
+        z: clamp(plane.z, 0.56, 0.965),
+      };
     } else {
-      this.aim.x = 0;
-      this.aim.z = 0.84;
+      this.cpuTarget = { x: 0, z: 0.84 };
     }
+
+    // desliza da mira neutra até o alvo; pontos do preview seguem os passos
+    this.cpuAimFrom = { x: this.aim.x || 0, z: this.aim.z || 0.84 };
+    this.cpuAimT = 0;
+    this.cpuPrevTimer = 0;
+    this.aim.x = this.cpuAimFrom.x;
+    this.aim.z = this.cpuAimFrom.z;
+    this.updatePreview();
 
     this.pushHud();
     this.schedule(1.15, () => {
       this.cpuThinking = false;
       this.aim.active = false;
+      this.cpuTarget = null;
       this.launch(this.aim.x, this.aim.z);
     });
   }
@@ -697,6 +878,8 @@ export class Game {
     saveStore(this.store);
 
     this.audio.play(playerWon ? 'win' : 'lose');
+    // música do fever SEGUE na tela de resultado: só para (fade) numa nova
+    // partida ou ao voltar para o menu (start()/toMenu() chamam o stop)
     this.renderer.confetti();
     this.renderer.shake = this.renderer.reducedMotion ? 0 : 14;
     this.hooks.vibrate?.([40, 60, 60]);
@@ -730,6 +913,7 @@ export class Game {
       mode: this.mode,
       names: this.players.map((p) => p.name),
       cups: this.players.map((p) => p.cups.filter((c) => c.state === 'up').length),
+      totals: this.players.map((p) => p.cups.length),
       turn: this.turn,
       throwsLeft: this.throwsLeft,
       streak: this.streak,

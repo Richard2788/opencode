@@ -1,4 +1,4 @@
-import { DIFFICULTIES } from './config.js';
+import { DIFFICULTIES, PRACTICE_MAX_CUPS } from './config.js';
 import { saveStore, resetStats } from './store.js';
 
 const $ = (selector) => document.querySelector(selector);
@@ -131,7 +131,7 @@ export function initUI({ store, audio, game }) {
       el.cups1.setAttribute('aria-label', `Precisão de ${data.accuracy}%`);
       el.name2.textContent = 'Alvos';
       el.count2.textContent = String(data.cups[1]);
-      paintCups(el.cups2, data.cups[1], 10);
+      paintCups(el.cups2, data.cups[1], data.totals?.[1] || 10);
       el.team1.classList.add('is-active');
       el.team2.classList.remove('is-active');
       el.turnLabel.textContent = 'Treino livre';
@@ -144,8 +144,8 @@ export function initUI({ store, audio, game }) {
       el.name2.textContent = data.names[1];
       el.count1.textContent = String(data.cups[0]);
       el.count2.textContent = String(data.cups[1]);
-      paintCups(el.cups1, data.cups[0], 10);
-      paintCups(el.cups2, data.cups[1], 10);
+      paintCups(el.cups1, data.cups[0], data.totals?.[0] || 10);
+      paintCups(el.cups2, data.cups[1], data.totals?.[1] || 10);
       el.team1.classList.toggle('is-active', data.turn === 0);
       el.team2.classList.toggle('is-active', data.turn === 1);
       el.throwDots.hidden = false;
@@ -190,6 +190,15 @@ export function initUI({ store, audio, game }) {
     for (const btn of document.querySelectorAll('#difficulty-seg button')) {
       btn.setAttribute('aria-checked', String(btn.dataset.diff === diff));
     }
+
+    // treino livre: forma + quantidade
+    const shape = game.practiceShape;
+    for (const btn of document.querySelectorAll('#practice-shape-seg button')) {
+      btn.setAttribute('aria-checked', String(btn.dataset.shape === shape));
+    }
+    $('#prac-count').textContent = String(game.practiceCount);
+    $('#prac-minus').disabled = game.practiceCount <= 1;
+    $('#prac-plus').disabled = game.practiceCount >= PRACTICE_MAX_CUPS;
     syncStats();
   }
 
@@ -219,6 +228,18 @@ export function initUI({ store, audio, game }) {
   function setDifficulty(value) {
     if (!DIFFICULTIES[value]) return;
     game.setDifficulty(value);
+    syncSettings();
+    audio.play('ui');
+  }
+
+  function setPracticeShape(value) {
+    game.setPractice(value, undefined);
+    syncSettings();
+    audio.play('ui');
+  }
+
+  function setPracticeCount(delta) {
+    game.setPractice(undefined, game.practiceCount + delta);
     syncSettings();
     audio.play('ui');
   }
@@ -277,6 +298,14 @@ export function initUI({ store, audio, game }) {
   $('#btn-cpu').addEventListener('click', () => startGame('cpu'));
   $('#btn-local').addEventListener('click', () => startGame('local'));
   $('#btn-practice').addEventListener('click', () => startGame('practice'));
+
+  // treino livre: forma + quantidade dos copos
+  document.querySelector('#practice-shape-seg').addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button[data-shape]');
+    if (btn) setPracticeShape(btn.dataset.shape);
+  });
+  $('#prac-minus').addEventListener('click', () => setPracticeCount(-1));
+  $('#prac-plus').addEventListener('click', () => setPracticeCount(1));
 
   $('#btn-howto').addEventListener('click', () => {
     audio.play('ui');

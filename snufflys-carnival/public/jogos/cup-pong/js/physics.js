@@ -280,6 +280,20 @@ export class BallSim {
     const rh = hyp2(dx, dd);
     const rc = cupRadiusAt(p[2]);
 
+    // APROXIMAÇÃO (cena de pânico do último copo): bola DESCENDO com menos
+    // de ~2 raios da boca e caindo na altura da garganta — dispara UMA vez
+    // antes de qualquer colisão/entrada (aqui ou raspa, ainda não se sabe).
+    if (
+      !cs.nearFired &&
+      v[2] < 0 &&
+      p[2] < HC * 1.7 &&
+      p[2] > HC * 0.25 &&
+      rh < RT * 1.9
+    ) {
+      cs.nearFired = true;
+      this.hooks.onApproach?.(cs, { x: p[0], d: p[1], h: p[2] });
+    }
+
     // bem acima do copo e longe da boca: nada a fazer
     if (p[2] > HC + r + PHYS.RIM_RADIUS && rh > RT + r) return;
 

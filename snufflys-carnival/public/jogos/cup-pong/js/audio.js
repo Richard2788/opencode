@@ -8,6 +8,97 @@ export class AudioEngine {
     this.ctx = null;
     this.master = null;
     this.noiseBuffer = null;
+    // música do EXTREME FEVER (HTMLAudio — carga preguiçosa, fora do DECIMITV)
+    this.feverMusic = null;
+    this.feverDuckRaf = 0;
+    this.FEVER_MUSIC_URL = '/assets/audio/extreme fever music.mp3';
+    this.FEVER_MUSIC_VOL = 0.85;
+  }
+
+  /* =========================================================
+     MÚSICA DO EXTREME FEVER
+     - começa a tocar quando o fever ESTOURA (onCupEnter);
+     - vitória: continua em loop;
+     - derrota: pitch decresce + volume cai rápido até sumir;
+     - fim de partida / nova partida / menu: fade-out educado.
+     ========================================================= */
+
+  _ensureFeverMusic() {
+    if (!this.feverMusic) {
+      const a = new Audio(this.FEVER_MUSIC_URL);
+      a.loop = true;
+      a.preload = 'auto';
+      a.volume = this.FEVER_MUSIC_VOL;
+      // sem preserve-pitch: playbackRate desce o TOM (efeito vinil parando)
+      a.preservesPitch = false;
+      a.webkitPreservesPitch = false;
+      a.crossOrigin = 'anonymous';
+      this.feverMusic = a;
+    }
+    return this.feverMusic;
+  }
+
+  playFeverMusic() {
+    if (!this.enabled) return;
+    const m = this._ensureFeverMusic();
+    this._cancelFeverDuck();
+    m.volume = this.FEVER_MUSIC_VOL;
+    m.playbackRate = 1;
+    m.loop = true;
+    const p = m.play();
+    if (p && typeof p.catch === 'function') p.catch(() => {});
+  }
+
+  _cancelFeverDuck() {
+    if (this.feverDuckRaf) {
+      cancelAnimationFrame(this.feverDuckRaf);
+      this.feverDuckRaf = 0;
+    }
+  }
+
+  /* derrota no fever: playbackRate 1 → 0.1 e volume → 0 em ~1s */
+  duckFeverMusic() {
+    if (!this.feverMusic || this.feverMusic.paused) return;
+    this._cancelFeverDuck();
+    const m = this.feverMusic;
+    const start = performance.now();
+    const dur = 1000;
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / dur);
+      const e = t * (2 - t); // ease-out: cai rápido no comecço
+      m.playbackRate = 1 - e * 0.9;
+      m.volume = this.FEVER_MUSIC_VOL * (1 - e);
+      this.feverDuckRaf = t < 1 ? requestAnimationFrame(step) : 0;
+      if (t >= 1) {
+        m.pause();
+        m.currentTime = 0;
+        m.playbackRate = 1;
+        m.volume = this.FEVER_MUSIC_VOL;
+      }
+    };
+    this.feverDuckRaf = requestAnimationFrame(step);
+  }
+
+  /* fade-out suave (fim de partida / menu / som desligado). */
+  stopFeverMusic(fadeMs = 1500) {
+    this._cancelFeverDuck();
+    const m = this.feverMusic;
+    if (!m || m.paused) return;
+    const start = performance.now();
+    const v0 = m.volume;
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / fadeMs);
+      m.volume = v0 * (1 - t);
+      if (t < 1) {
+        this.feverDuckRaf = requestAnimationFrame(step);
+      } else {
+        this.feverDuckRaf = 0;
+        m.pause();
+        m.currentTime = 0;
+        m.volume = this.FEVER_MUSIC_VOL;
+      }
+    };
+    this.feverDuckRaf = requestAnimationFrame(step);
   }
 
   unlock() {
@@ -31,6 +122,7 @@ export class AudioEngine {
   setEnabled(value) {
     this.enabled = Boolean(value);
     this.store.settings.sound = this.enabled;
+    if (!this.enabled) this.stopFeverMusic(300); // silencio total, sem fade longo
     if (this.enabled) this.unlock();
     if (this.master) {
       this.master.gain.setTargetAtTime(this.enabled ? 0.5 : 0, this.ctx.currentTime, 0.02);
@@ -157,6 +249,15 @@ export class AudioEngine {
         });
         this._tone(1568, { type: 'sine', dur: 0.7, gain: 0.1, delay: 0.32 });
         this._noise({ dur: 0.8, gain: 0.1, type: 'bandpass', freq: 2200, q: 1.4 });
+        break;
+
+      case 'feverStars':
+        // estrelas nascendo do copo: arpejo pentatônico ascendente + shimmer
+        [880, 1047, 1175, 1319, 1568, 1760, 2093].forEach((f, i) => {
+          this._tone(f, { type: 'sine', dur: 0.16, gain: 0.075, delay: 0.02 + i * 0.045 });
+        });
+        this._tone(2637, { type: 'sine', dur: 0.5, gain: 0.06, delay: 0.34 });
+        this._noise({ dur: 0.6, gain: 0.045, type: 'bandpass', freq: 5200, slideTo: 7800, q: 1.2 });
         break;
 
       case 'feverLose':

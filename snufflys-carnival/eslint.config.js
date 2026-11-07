@@ -21,6 +21,7 @@ module.exports = [
         clearInterval: 'readonly',
         Path2D: 'readonly',
         confirm: 'readonly',
+        Audio: 'readonly',
       },
     },
     rules: {

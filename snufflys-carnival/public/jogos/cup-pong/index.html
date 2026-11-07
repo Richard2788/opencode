@@ -232,6 +232,27 @@
         </div>
 
         <div class="panel">
+          <h3>Treino livre</h3>
+          <p class="muted small">Forma de distribuição dos copos:</p>
+          <div class="segmented segmented--wrap" id="practice-shape-seg" role="radiogroup" aria-label="Forma dos copos no treino">
+            <button type="button" data-shape="pyramid" role="radio" aria-checked="true">Pirâmide</button>
+            <button type="button" data-shape="diamond" role="radio" aria-checked="false">Diamante</button>
+            <button type="button" data-shape="line" role="radio" aria-checked="false">Linha</button>
+            <button type="button" data-shape="circle" role="radio" aria-checked="false">Círculo</button>
+            <button type="button" data-shape="v" role="radio" aria-checked="false">V</button>
+            <button type="button" data-shape="random" role="radio" aria-checked="false">Aleatória</button>
+          </div>
+          <div class="setting-row" style="margin-top:10px">
+            <div class="setting-copy"><strong>Número de copos</strong><span>De 1 a 15, aplica já no rack atual</span></div>
+            <div class="stepper">
+              <button type="button" id="prac-minus" aria-label="Menos copos">−</button>
+              <strong id="prac-count">10</strong>
+              <button type="button" id="prac-plus" aria-label="Mais copos">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
           <h3>Suas estatísticas</h3>
           <div class="stats-grid" id="stats-grid">
             <div><strong id="stat-games">0</strong><span>Partidas</span></div>
