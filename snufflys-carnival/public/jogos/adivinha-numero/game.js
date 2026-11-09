@@ -407,13 +407,34 @@
     setSpeech(`Hmm, não foi ${value}. O número é ${direction}! Tenta outra vez.`);
   }
 
+  /* Ranking: os pontos da sessão são acumulados e enviados em uma única
+     "partida" após uma pausa de inatividade (ou ao sair da página) — evita
+     poluir o ranking global com micro-pontuações a cada rodada. */
+  let sessionPoints = 0;
+  let flushTimer = null;
+  const FLUSH_DELAY = 20000;
+
+  function queueRankPoints(points) {
+    sessionPoints += points;
+    window.clearTimeout(flushTimer);
+    flushTimer = window.setTimeout(flushRankPoints, FLUSH_DELAY);
+  }
+
+  function flushRankPoints() {
+    window.clearTimeout(flushTimer);
+    flushTimer = null;
+    if (sessionPoints <= 0) return;
+    const points = sessionPoints;
+    sessionPoints = 0;
+    const bridge = window.SnufflyScores;
+    if (bridge) bridge.submitScore(points);
+  }
+
   function finishRound(result) {
     lockBoard();
     revealTarget();
     dom.boardTitle.textContent = 'Rodada encerrada';
     dom.attempts.hidden = true;
-
-    const bridge = window.SnufflyScores;
 
     if (result === 'exact') {
       stats.prizes += 1;
@@ -427,7 +448,7 @@
       setFeedback('win', '🏆', `Acertou! O número era ${state.target}. Prêmio máximo garantido!`);
       showPrizeDialog('gold');
       // Ranking: acerto exato = 10 pts + 2 por vitória consecutiva
-      if (bridge) bridge.submitScore(10 + (stats.streak - 1) * 2);
+      queueRankPoints(10 + (stats.streak - 1) * 2);
     } else if (result === 'close') {
       stats.prizes += 1;
       stats.streak = 0;
@@ -443,7 +464,7 @@
       );
       showPrizeDialog('close');
       // Ranking: acerto aproximado = 5 pts
-      if (bridge) bridge.submitScore(5);
+      queueRankPoints(5);
     } else {
       stats.streak = 0;
       saveStats();
@@ -559,6 +580,12 @@
     });
 
     dom.toastClose.addEventListener('click', hideToast);
+
+    // Ranking: envia os pontos acumulados ao sair/ocultar a página
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') flushRankPoints();
+    });
+    window.addEventListener('pagehide', flushRankPoints);
 
     // Teclado: 1–9 e 0 (para 10)
     document.addEventListener('keydown', (event) => {
