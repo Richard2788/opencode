@@ -442,9 +442,12 @@ button:focus-visible,
 .toast {
   position: absolute;
   z-index: 8;
-  top: calc(var(--safe-top) + 148px);
-  left: 50%;
-  transform: translate(-50%, -8px) scale(0.96);
+  bottom: calc(var(--safe-bottom) + 88px);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: fit-content;
+  transform: translateY(-8px) scale(0.96);
   padding: 9px 18px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.96);
@@ -468,7 +471,7 @@ button:focus-visible,
 
 .toast.is-visible {
   opacity: 1;
-  transform: translate(-50%, 0) scale(1);
+  transform: translateY(0) scale(1);
 }
 
 .toast.is-good {
