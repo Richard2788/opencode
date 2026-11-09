@@ -254,6 +254,14 @@ export class Renderer {
 
   startFever() {
     if (this.reducedMotion) return;
+    // queda proativa de resolução: o fever é o pico de carga (arco-íris +
+    // partículas + slow-mo ao mesmo tempo) e a engrenagem lowPerf só reage
+    // DEPOIS que o FPS cai. Melhor começar leve — o rebuild dos sprites
+    // acontece agora, antes do arremesso decisivo.
+    if (!this.dprCap && (window.devicePixelRatio || 1) > 1.5) {
+      this.dprCap = 1.5;
+      this.downscaleToDpr();
+    }
     this.fever = true;
     this.feverResult = '';
     this.feverFail = 0;
@@ -284,23 +292,27 @@ export class Renderer {
 
   /* chuva dourada derrapando em direção ao copo final */
   goldRain(pt) {
-    this.queueGen(() => {
-      this.particles.push({
-        x: rand(0, this.W),
-        y: rand(-this.H * 0.4, -10),
-        vx: rand(-70, 70),
-        vy: rand(140, 340),
-        g: 340,
-        drag: 0.998,
-        t: 0,
-        life: rand(1.4, 2.6),
-        size: rand(2, 6),
-        color: pick(['#ffd600', '#f2a900', '#fff0a8', '#ffffff']),
-        shape: 'rect',
-        spin: rand(-12, 12),
-        rot: rand(0, TAU),
-      });
-    }, 45, 15);
+    this.queueGen(
+      () => {
+        this.particles.push({
+          x: rand(0, this.W),
+          y: rand(-this.H * 0.4, -10),
+          vx: rand(-70, 70),
+          vy: rand(140, 340),
+          g: 340,
+          drag: 0.998,
+          t: 0,
+          life: rand(1.4, 2.6),
+          size: rand(2, 6),
+          color: pick(['#ffd600', '#f2a900', '#fff0a8', '#ffffff']),
+          shape: 'rect',
+          spin: rand(-12, 12),
+          rot: rand(0, TAU),
+        });
+      },
+      45,
+      15
+    );
   }
 
   /* estrelas de carnaval: saem de dentro do copo no fecho do EXTREME FEVER
@@ -325,29 +337,33 @@ export class Renderer {
     const ry = pt.ry || 8;
     const count = 15 + ((Math.random() * 6) | 0);
     const bigTarget = Math.ceil(count * 0.4);
-    this.queueGen(() => {
-      const idx = Math.floor(rand(0, count)); // determina grandeza só na amostra
-      const big = idx < bigTarget;
-      const ang = -Math.PI * rand(0.05, 0.95);
-      this.particles.push({
-        x: pt.x + rand(-rx * 0.6, rx * 0.6),
-        y: pt.y + rand(-ry * 0.5, 0),
-        vx: Math.cos(ang) * rand(60, 150),
-        vy: Math.sin(ang) * rand(150, 320),
-        g: 300,
-        drag: 0.995,
-        t: 0,
-        life: rand(1.1, 2.2),
-        size: big ? rand(9, 15) : rand(4.5, 8),
-        color: '#ffd600',
-        hue: rand(0, 360),
-        shape: 'star',
-        trail: [],
-        spin: rand(-14, 14),
-        rot: rand(0, TAU),
-        starDelay: big ? 0 : rand(0, 0.25),
-      });
-    }, count, 8);
+    this.queueGen(
+      () => {
+        const idx = Math.floor(rand(0, count)); // determina grandeza só na amostra
+        const big = idx < bigTarget;
+        const ang = -Math.PI * rand(0.05, 0.95);
+        this.particles.push({
+          x: pt.x + rand(-rx * 0.6, rx * 0.6),
+          y: pt.y + rand(-ry * 0.5, 0),
+          vx: Math.cos(ang) * rand(60, 150),
+          vy: Math.sin(ang) * rand(150, 320),
+          g: 300,
+          drag: 0.995,
+          t: 0,
+          life: rand(1.1, 2.2),
+          size: big ? rand(9, 15) : rand(4.5, 8),
+          color: '#ffd600',
+          hue: rand(0, 360),
+          shape: 'star',
+          trail: [],
+          spin: rand(-14, 14),
+          rot: rand(0, TAU),
+          starDelay: big ? 0 : rand(0, 0.25),
+        });
+      },
+      count,
+      8
+    );
   }
 
   /* raios elétricos nas laterais, estilo Peggle */
@@ -392,7 +408,10 @@ export class Renderer {
     g.arc(c, c, c * 0.55, 0, TAU);
     g.fill();
     // amacia o contorno do anel (fade das bordas)
-    for (const [rc, alpha] of [[c * 0.92, 0.3], [c * 0.96, 0.5]]) {
+    for (const [rc, alpha] of [
+      [c * 0.92, 0.3],
+      [c * 0.96, 0.5],
+    ]) {
       g.lineWidth = 4;
       g.strokeStyle = `rgba(0, 0, 0, ${alpha})`;
       g.beginPath();
@@ -566,7 +585,10 @@ export class Renderer {
      full-canvas por frame) */
   buildSpotlights() {
     const size = 256;
-    for (const [name, col] of [['spotRed', '229, 57, 53'], ['spotGold', '255, 214, 0']]) {
+    for (const [name, col] of [
+      ['spotRed', '229, 57, 53'],
+      ['spotGold', '255, 214, 0'],
+    ]) {
       const cv = document.createElement('canvas');
       cv.width = size;
       cv.height = size;
@@ -655,7 +677,7 @@ export class Renderer {
           Math.max(this.W, this.H) * 0.7
         );
         g2.addColorStop(0, 'rgba(0,0,0,0)');
-        g2.addColorStop(1, `rgba(127, 16, 16, ${(12 / 12 * 0.4).toFixed(4)})`);
+        g2.addColorStop(1, `rgba(127, 16, 16, ${((12 / 12) * 0.4).toFixed(4)})`);
         this.failGrad = g2;
         this.failGradKey = failKey;
       }
@@ -700,8 +722,8 @@ export class Renderer {
         ctx.strokeStyle = 'rgba(42, 20, 20, 0.85)';
         ctx.strokeText(banner, 0, 0);
         // gradiente ARCO-ÍRIS vibrante animado (matiz girando) — em cache
-        // por bucket de 100ms em vez de por frame
-        const bKey = `${isLose ? 'L' : 'F'}${Math.round(this.time * 10)}`;
+        // por bucket de 200ms em vez de por frame
+        const bKey = `${isLose ? 'L' : 'F'}${Math.round(this.time * 5)}`;
         if (this.bannerGradKey !== bKey) {
           this.bannerGradKey = bKey;
           if (!isLose) {
@@ -722,8 +744,8 @@ export class Renderer {
         ctx.fillStyle = this.bannerGrad;
         ctx.fillText(banner, 0, 0);
         ctx.restore();
-        // raios elétricos durante o fever
-        if (!isWin && !isLose && Math.random() < 0.12) this.addBolt();
+        // raios elétricos durante o fever (raros em modo low-perf)
+        if (!isWin && !isLose && Math.random() < (this.lowPerf ? 0.05 : 0.1)) this.addBolt();
       } else if (!this.fever) {
         this.feverResult = '';
       }
@@ -738,7 +760,7 @@ export class Renderer {
   drawFeverRainbow(tt) {
     if (this.fpsAvg < 45) return; // guard: sem painéis em queda de FPS
     const ctx = this.ctx;
-    const BUCKET = 0.1; // s
+    const BUCKET = 0.2; // s
 
     // regenera gradientes apenas 1x por bucket de 100ms
     if (!this.rainbowCache || this.time - this.rainbowCache.at > BUCKET) {
@@ -1060,10 +1082,10 @@ export class Renderer {
     const bh = rb * 1.42;
     const pad = 6;
     const w = Math.ceil(rb * 2 + pad * 2);
-    const oy = Math.ceil(rr + pad);   // espaço TOTAL acima da boca: aro ±ry
+    const oy = Math.ceil(rr + pad); // espaço TOTAL acima da boca: aro ±ry
     const bot = Math.ceil(bh + rr * 1.9 + pad);
     const h = oy + bot;
-    const ox = w / 2;   // centro da boca dentro do sprite
+    const ox = w / 2; // centro da boca dentro do sprite
 
     const cv = document.createElement('canvas');
     cv.width = Math.round(w * this.dpr);
@@ -1408,27 +1430,32 @@ export class Renderer {
   confetti() {
     if (this.reducedMotion) return;
     const colors = ['#e53935', '#ffd600', '#b71c1c', '#fff1bf', '#f2a900', '#ffffff'];
-    this.queueGen(() => {
-      this.particles.push({
-        x: rand(0, this.W),
-        y: rand(-this.H * 0.25, -10),
-        vx: rand(-40, 40),
-        vy: rand(60, 190),
-        g: 160,
-        drag: 0.995,
-        t: 0,
-        life: rand(2.2, 3.8),
-        size: rand(3, 7),
-        color: pick(colors),
-        shape: 'rect',
-        spin: rand(-8, 8),
-        rot: rand(0, TAU),
-      });
-    }, 110, 22);
+    this.queueGen(
+      () => {
+        this.particles.push({
+          x: rand(0, this.W),
+          y: rand(-this.H * 0.25, -10),
+          vx: rand(-40, 40),
+          vy: rand(60, 190),
+          g: 160,
+          drag: 0.995,
+          t: 0,
+          life: rand(2.2, 3.8),
+          size: rand(3, 7),
+          color: pick(colors),
+          shape: 'rect',
+          spin: rand(-8, 8),
+          rot: rand(0, TAU),
+        });
+      },
+      110,
+      22
+    );
   }
 
   updateEffects(dt) {
-    const max = MAX_PARTICLES;
+    // teto de partículas menor durante o fever (pico de efeitos simultâneos)
+    const max = this.fever ? Math.min(MAX_PARTICLES, 140) : MAX_PARTICLES;
     this.drainSpawns(); // spawns escalonados: máx ~n por frame
     // slow-mo GARANTIDO (cena de pânico do último copo): pinado em tempo REAL
     if (this.slowHold > 0 && !this.reducedMotion) {
@@ -1488,12 +1515,11 @@ export class Renderer {
         // raio elétrico (Peggle lightning)
         ctx2.save();
         ctx2.globalAlpha = (1 - p) * 0.95;
-        ctx2.strokeStyle = r.hueCycle
-          ? `hsl(${(this.time * 240) % 360}, 100%, 66%)`
-          : stroke;
+        ctx2.strokeStyle = r.hueCycle ? `hsl(${(this.time * 240) % 360}, 100%, 66%)` : stroke;
         ctx2.lineWidth = 2.4;
         ctx2.shadowColor = stroke;
-        ctx2.shadowBlur = r.hueCycle ? 10 : 12;
+        // shadowBlur é caro: sem glow em modo low-perf
+        ctx2.shadowBlur = this.lowPerf ? 0 : r.hueCycle ? 10 : 12;
         ctx2.beginPath();
         ctx2.moveTo(r.bolt[0].x, r.bolt[0].y);
         for (const seg of r.bolt.slice(1)) ctx2.lineTo(seg.x, seg.y);
@@ -1540,7 +1566,8 @@ export class Renderer {
             if (i === 0) ctx.moveTo(p.trail[0].x, p.trail[0].y);
             else ctx.lineTo(p.trail[i].x, p.trail[i].y);
           }
-          if ((p.trail.length - 1) % 2) ctx.lineTo(p.trail[p.trail.length - 1].x, p.trail[p.trail.length - 1].y);
+          if ((p.trail.length - 1) % 2)
+            ctx.lineTo(p.trail[p.trail.length - 1].x, p.trail[p.trail.length - 1].y);
           ctx.stroke();
           // núcleo claro interno (2º stroke, barato)
           ctx.globalAlpha = alpha * 0.65;
