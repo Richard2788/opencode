@@ -1,7 +1,4 @@
-import {
-  DIFFICULTIES, PHYS,
-  PRACTICE_MAX_CUPS, PRACTICE_SHAPES, rackPositions,
-} from './config.js';
+import { DIFFICULTIES, PHYS, PRACTICE_MAX_CUPS, PRACTICE_SHAPES, rackPositions } from './config.js';
 import { BallSim, mToXu, mToZu, solveThrow, xuToM, zuToM } from './physics.js';
 import { saveStore } from './store.js';
 
@@ -162,8 +159,11 @@ export class Game {
     const p2name = safeMode === 'local' ? 'Jogador 2' : safeMode === 'practice' ? 'Alvos' : 'CPU';
     this.players = [
       makePlayer('Você'),
-      makePlayer(p2name, safeMode === 'practice' ? this.practiceShape : undefined,
-        safeMode === 'practice' ? this.practiceCount : undefined),
+      makePlayer(
+        p2name,
+        safeMode === 'practice' ? this.practiceShape : undefined,
+        safeMode === 'practice' ? this.practiceCount : undefined
+      ),
     ];
     if (safeMode === 'local') this.players[0].name = 'Jogador 1';
 

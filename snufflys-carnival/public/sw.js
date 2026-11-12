@@ -22,7 +22,7 @@ const ASSETS = [
   '/icons/icon-512-maskable.png',
   '/img/logo.png',
   '/img/logo-512.webp',
-  "/assets/audio/extreme fever music.mp3", // música do EXTREME FEVER (Cup Pong)
+  '/assets/audio/extreme fever music.mp3', // música do EXTREME FEVER (Cup Pong)
   // Jogo: Adivinha o Meu Número
   '/jogos/adivinha-numero/',
   '/jogos/scores-comum.js',

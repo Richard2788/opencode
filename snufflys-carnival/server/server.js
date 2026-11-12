@@ -33,5 +33,24 @@ const port = process.env.PORT || 3000;
     process.exit(1);
   }
 
-  app.listen(port, () => console.log(`🎪 Snuffly's Carnival na porta ${port}`));
+  const server = app.listen(port, () => console.log(`🎪 Snuffly's Carnival na porta ${port}`));
+
+  // Graceful shutdown (SIGTERM no Render, Ctrl+C local): para de aceitar
+  // conexões, fecha o pool do banco e sai — sem requisições cortadas.
+  async function shutdown(signal) {
+    console.log(`\n${signal} recebido — encerrando com elegância...`);
+    const timer = setTimeout(() => process.exit(1), 10_000);
+    timer.unref();
+    try {
+      await new Promise((resolve) => server.close(resolve));
+      await app.locals.pool.end();
+      console.log('✔ Servidor e pool de conexões encerrados.');
+      process.exit(0);
+    } catch (err) {
+      console.error('✖ Falha no encerramento:', err.message);
+      process.exit(1);
+    }
+  }
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 })();

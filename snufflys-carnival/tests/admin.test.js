@@ -11,9 +11,12 @@ process.env.ADMIN_PASS = 'palavra-secreta-teste';
 // App próprio: o rate limiter é por instância (Map em memória), então os
 // testes abaixo não interferem nos de api.test.js nem entre si.
 const createApp = require('../server/app');
+const { startEmbeddedDb, stopEmbeddedDb, DEFAULT_URL } = require('../server/scripts/db-embedded');
+const ensureDb = require('../server/ensure-db');
 const pool = require('../server/db');
 
 let temBanco = false;
+let donoDoPg = false;
 
 /** GET /admin/login → { cookie, csrf } para o fluxo CSRF (double-submit). */
 async function getCSRF(app) {
@@ -27,10 +30,7 @@ async function getCSRF(app) {
 }
 
 async function login(app, senha, { ip, csrf = {} } = {}) {
-  const req = request(app)
-    .post('/admin/login')
-    .type('form')
-    .send({ senha, _csrf: csrf.token });
+  const req = request(app).post('/admin/login').type('form').send({ senha, _csrf: csrf.token });
   if (ip) req.set('X-Forwarded-For', ip);
   if (csrf.cookie) req.set('Cookie', csrf.cookie);
   return req;
@@ -41,6 +41,17 @@ describe('painel admin', () => {
 
   before(async () => {
     app = createApp();
+    // Sem DATABASE_URL externa: sobe o Postgres embutido e garante o schema.
+    if (!process.env.DATABASE_URL) {
+      try {
+        await startEmbeddedDb();
+        process.env.DATABASE_URL = DEFAULT_URL;
+        donoDoPg = true;
+        await ensureDb();
+      } catch (err) {
+        console.warn('⚠ Postgres embutido indisponível:', err.message);
+      }
+    }
     try {
       await pool.query('SELECT 1');
       temBanco = true;
@@ -51,6 +62,7 @@ describe('painel admin', () => {
 
   after(async () => {
     await pool.end().catch(() => {});
+    if (donoDoPg) await stopEmbeddedDb();
   });
 
   describe('GET /admin/contatos (proteção)', () => {
@@ -78,9 +90,7 @@ describe('painel admin', () => {
         .send({ senha: 'palavra-secreta-teste' });
       assert.equal(res.status, 403);
       assert.match(res.text, /Sessão expirada/);
-      assert.ok(
-        !(res.headers['set-cookie'] || []).some((c) => c.startsWith('snuffly_admin='))
-      );
+      assert.ok(!(res.headers['set-cookie'] || []).some((c) => c.startsWith('snuffly_admin=')));
     });
 
     test('CSRF sem cookie correspondente é rejeitado (pedido forjado)', async () => {
@@ -98,9 +108,7 @@ describe('painel admin', () => {
       assert.equal(res.status, 302);
       assert.match(res.headers.location, /\/admin\/contatos/);
 
-      const sessao = (res.headers['set-cookie'] || []).find((c) =>
-        c.startsWith('snuffly_admin=')
-      );
+      const sessao = (res.headers['set-cookie'] || []).find((c) => c.startsWith('snuffly_admin='));
       assert.match(sessao, /^snuffly_admin=[a-f0-9]{64}/i);
       assert.match(sessao, /httponly/i);
       assert.match(sessao, /samesite=lax/i);
@@ -121,9 +129,7 @@ describe('painel admin', () => {
       const res = await login(app, 'errada', { csrf: { cookie, token: csrf } });
       assert.equal(res.status, 401);
       assert.match(res.text, /Senha incorreta/);
-      assert.ok(
-        !(res.headers['set-cookie'] || []).some((c) => c.startsWith('snuffly_admin='))
-      );
+      assert.ok(!(res.headers['set-cookie'] || []).some((c) => c.startsWith('snuffly_admin=')));
     });
 
     test('senha vazia responde 401', async () => {
@@ -163,9 +169,7 @@ describe('painel admin', () => {
       assert.equal(logout.status, 302);
       assert.match(logout.headers.location, /\/admin\/login/);
 
-      const depois = await request(app)
-        .get('/admin/contatos')
-        .set('Cookie', sessao);
+      const depois = await request(app).get('/admin/contatos').set('Cookie', sessao);
       assert.equal(depois.status, 302); // token destruído no servidor
       assert.match(depois.headers.location, /\/admin\/login/);
     });

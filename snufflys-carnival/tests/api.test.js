@@ -6,13 +6,25 @@ const assert = require('node:assert');
 const request = require('supertest');
 
 const createApp = require('../server/app');
+const { startEmbeddedDb, stopEmbeddedDb, DEFAULT_URL } = require('../server/scripts/db-embedded');
 const pool = require('../server/db');
 
 const app = createApp();
 
 let temBanco = false;
+let donoDoPg = false;
 
 before(async () => {
+  // Sem DATABASE_URL externa: sobe o Postgres embutido (binários locais).
+  if (!process.env.DATABASE_URL) {
+    try {
+      await startEmbeddedDb();
+      process.env.DATABASE_URL = DEFAULT_URL;
+      donoDoPg = true;
+    } catch (err) {
+      console.warn('⚠ Postgres embutido indisponível, testes de banco serão pulados:', err.message);
+    }
+  }
   try {
     await pool.query('SELECT 1');
     try {
@@ -23,12 +35,19 @@ before(async () => {
       try {
         await app.locals.ensureDb();
         temBanco = true;
-      } catch { /* sem banco mesmo */ }
+      } catch {
+        /* sem banco mesmo */
+      }
     }
-  } catch { temBanco = false; }
+  } catch {
+    temBanco = false;
+  }
 });
 
-after(async () => { await pool.end().catch(() => {}); });
+after(async () => {
+  await pool.end().catch(() => {});
+  if (donoDoPg) await stopEmbeddedDb();
+});
 
 describe('GET /api/games (sem banco)', () => {
   test('200 com 4 jogos', async () => {
@@ -120,7 +139,9 @@ describe('GET /api/prizes (com banco)', () => {
       .post('/api/contact')
       .send({ nome: 'T <b>bold</b>', email: 't@t.com', mensagem: 'msg <@123> x' });
     assert.equal(res.status, 201);
-    const { rows } = await pool.query('SELECT nome, mensagem FROM contacts ORDER BY id DESC LIMIT 1');
+    const { rows } = await pool.query(
+      'SELECT nome, mensagem FROM contacts ORDER BY id DESC LIMIT 1'
+    );
     assert.ok(!rows[0].nome.includes('<'));
     assert.ok(!rows[0].mensagem.includes('<@'));
     await pool.query("DELETE FROM contacts WHERE email='t@t.com' AND nome LIKE 'T %'");

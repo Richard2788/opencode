@@ -30,4 +30,6 @@ CREATE TABLE IF NOT EXISTS scores (
 -- Índices (item: performance nas consultas da vitrine e do ranking)
 CREATE INDEX IF NOT EXISTS idx_prizes_type       ON prizes (type);
 CREATE INDEX IF NOT EXISTS idx_prizes_created_at ON prizes (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_prizes_name       ON prizes (name);
+CREATE INDEX IF NOT EXISTS idx_scores_game       ON scores (game);
 CREATE INDEX IF NOT EXISTS idx_scores_game_pts   ON scores (game, points DESC);

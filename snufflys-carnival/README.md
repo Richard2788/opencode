@@ -17,14 +17,17 @@ public/              Front-end (static site, PWA)
   icons/, img/       Ícones e logo
 server/              Web service (Express, MVC)
   server.js          App principal (serve o front + /api)
-  db.js              Pool PostgreSQL
+  db.js              Pool PostgreSQL (lazy — lê DATABASE_URL na 1ª consulta)
   models/            M — acesso ao banco
   controllers/       C — lógica req/res
   routes/            Rotas REST
   sql/               schema.sql + seed.sql
   scripts/db-init.js Aplica schema/seed
+  scripts/db-embedded.js  Postgres embutido para dev/testes (sem instalar PG)
+  scripts/dev.js     `npm run dev`: PG embutido (se preciso) + servidor
+  scripts/db-up.js   `npm run db:up`: só o banco, até Ctrl+C
 render.yaml          Blueprint de deploy no Render.com
-docs/                Logo original
+docs/                Logo original e contexto de produção
 ```
 
 ## MVC — por que sim
@@ -48,12 +51,24 @@ O web service adota **MVC**: `models` (PostgreSQL), `controllers` (lógica) e `r
 ## Rodar localmente
 
 ```bash
-cp .env.example .env           # ajuste DATABASE_URL se necessário
 npm install
-npm run db:init -- --seed      # cria tabelas + prêmios de exemplo
-npm run dev                    # http://localhost:3000 (auto-reload)
-# ou
-npm start
+npm run dev                    # http://localhost:3000 (PG embutido + auto-reload)
+```
+
+O `npm run dev` usa um **PostgreSQL embutido** (binários oficiais baixados em
+`node_modules`, cluster em `.pgdata/`, porta 54329) — não é preciso instalar o
+Postgres no sistema. O schema e o seed são aplicados automaticamente. Na
+primeira vez o download dos binários pode demorar um pouco.
+
+Se `DATABASE_URL` estiver definida no `.env`, o dev usa esse banco externo e
+ignora o embutido.
+
+Scripts úteis:
+
+```bash
+npm run db:up                  # só o banco embutido (schema+seed), até Ctrl+C
+npm run db:init -- --seed      # aplica schema/seed no banco de DATABASE_URL
+npm start                      # produção: usa DATABASE_URL do ambiente
 ```
 
 ## Qualidade de código
@@ -66,8 +81,10 @@ npm test            # node:test + supertest (unitários + API)
 ```
 
 Os testes unitários rodam sem banco; os testes de integração usam `DATABASE_URL` se
-disponível (sem conexão, são pulados com aviso). Na CI (`.github/workflows/ci.yml`)
-sobe um PostgreSQL de serviço, roda `db:init --seed` e depois o lint + testes.
+disponível e, sem ela, sobem o **Postgres embutido** automaticamente (nada é pulado
+localmente; se o PG embutido não estiver disponível, são pulados com aviso). Na CI
+(`.github/workflows/ci.yml`) sobe um PostgreSQL de serviço, roda `db:init --seed` e
+depois o lint + testes.
 
 ## Estrutura pronta para os jogos
 
