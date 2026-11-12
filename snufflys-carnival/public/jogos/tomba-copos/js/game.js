@@ -3,6 +3,8 @@
    - Pirâmide 3-2-1 de copos carnavalescos sobre uma mesa
    - Bola de tênis de mesa lançada por gesto (slingshot) com física própria
    - Copos derrubados derrubam copos de cima (reação em cadeia)
+   - Pontuação: TODO copo que cair vale 1 ponto (direto pela bola ou
+     em cascata) — ver docs/casos-de-teste.md (CT-01)
    ============================================================ */
 (function () {
   'use strict';
@@ -84,8 +86,9 @@
     dpr = 1;
   let mode = 'start'; // start | play | ended
   let ballsLeft = TOTAL_BALLS;
-  let knocked = 0; // copos derrubados DIRETO pela bola (os únicos contados)
-  let cascade = 0; // copos que caíram por reação em cadeia (não contam na pontuação)
+  let knocked = 0; // TOTAL de copos derrubados (direto ou em cascata) — todos pontuam
+  let directHits = 0; // copos derrubados DIRETO pela bola (estatística do resumo)
+  let cascade = 0; // copos que caíram por reação em cadeia (também pontuam)
   let throwIndex = 0; // nº do arremesso atual (1-based)
   let cups = [];
   let ball = null;
@@ -236,6 +239,7 @@
     mode = 'play';
     ballsLeft = TOTAL_BALLS;
     knocked = 0;
+    directHits = 0;
     cascade = 0;
     throwIndex = 0;
     cups = [];
@@ -275,17 +279,23 @@
         c.vx = c.dir * W * 0.04;
         c.vy = 0;
         // cascata: copo que cai porque perdeu o apoio (não foi atingido pela
-        // bola) — marcado e contabilizado no arremesso corrente, mas NÃO
-        // entra em `knocked`, logo não pontua
+        // bola). Também pontua: todo copo derrubado conta (CT-01), por isso
+        // incrementa `knocked` junto com `cascade` (estatística do resumo).
         c.byCascade = true;
         c.cascadeThrow = throwIndex;
         cascade++;
+        knocked++;
         sfx.chain(Math.min(cascade, 6));
         changed = true;
       }
     }
     // cascata multinível: reavalia o apoio até a pirâmide estabilizar
-    if (changed) setTimeoutWorld(() => checkChains(perfNow()), 260);
+    if (changed) {
+      // pontuação visível imediatamente: cada copo de cascata soma no HUD
+      // e nos stats da UI assim que começa a cair (CT-01)
+      updateHUD();
+      setTimeoutWorld(() => checkChains(perfNow()), 260);
+    }
     return changed;
   }
 
@@ -304,6 +314,7 @@
     c.hitFlash = 1;
     c.hitThrow = throwIndex; // arremesso que derrubou o copo diretamente
     knocked++;
+    directHits++;
     sfx.knock(Math.min(knocked, 6));
     updateHUD();
     burstConfetti(6);
@@ -597,8 +608,7 @@
     checkChains(perfNow());
     updateHUD();
     if (mode !== 'play') return;
-    // Só copos derrubados diretamente pela bola contam para ganhar —
-    // copos de cascata caem visualmente, mas não pontuam.
+    // Todo copo que caiu pontua (direto pela bola ou em cascata) — CT-01.
     if (knocked >= WIN_CUPS) {
       setTimeoutWorld(() => finish(true), 700);
     } else if (ballsLeft <= 0) {
@@ -627,10 +637,10 @@
     } else {
       sfx.lose();
     }
-    // copos derrubados diretamente (cascata não entra na pontuação)
-    const stats = { knocked, cascade, throws: throwsBreakdown() };
+    // copos derrubados no total (diretos + cascata) e detalhe por jogada
+    const stats = { knocked, direct: directHits, cascade, throws: throwsBreakdown() };
     if (hooks && hooks.onFinish) hooks.onFinish(won, stats);
-    // Ranking global (API do site): pontos por acertos diretos e bolas sobrando
+    // Ranking global (API do site): pontos pelos copos derrubados e bolas sobrando
     const bridge = window.SnufflyScores;
     if (bridge) {
       const points = won ? 300 + knocked * 50 + ballsLeft * 100 : knocked * 25;

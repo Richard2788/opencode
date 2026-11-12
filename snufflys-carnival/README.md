@@ -27,7 +27,7 @@ server/              Web service (Express, MVC)
   scripts/dev.js     `npm run dev`: PG embutido (se preciso) + servidor
   scripts/db-up.js   `npm run db:up`: só o banco, até Ctrl+C
 render.yaml          Blueprint de deploy no Render.com
-docs/                Logo original e contexto de produção
+docs/                Logo, contexto de produção e casos de teste
 ```
 
 ## MVC — por que sim
@@ -36,17 +36,17 @@ O web service adota **MVC**: `models` (PostgreSQL), `controllers` (lógica) e `r
 
 ## API
 
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/api/health` | Health check (Render) — inclui status do banco |
-| GET | `/api/games` | Catálogo dos 4 jogos |
-| GET | `/api/games/:id` | Detalhe de um jogo |
-| GET | `/api/prizes` | Prêmios com filtros: `?type=&q=&page=&limit=&sort=recent\|name` |
-| GET | `/api/prizes/featured` | 3 prêmios em destaque |
-| GET | `/api/prizes/type/:type` | boneco \| arma \| acessorio |
-| GET | `/api/scores/:gameId?limit=10` | Top pontuações de um jogo (ranking) |
-| POST | `/api/scores` | Registra pontuação: `{ game, player, points }` |
-| POST | `/api/contact` | Mensagem de contato (rate limit: 10 envios / 10 min) |
+| Método | Rota                           | Descrição                                                       |
+| ------ | ------------------------------ | --------------------------------------------------------------- |
+| GET    | `/api/health`                  | Health check (Render) — inclui status do banco                  |
+| GET    | `/api/games`                   | Catálogo dos 4 jogos                                            |
+| GET    | `/api/games/:id`               | Detalhe de um jogo                                              |
+| GET    | `/api/prizes`                  | Prêmios com filtros: `?type=&q=&page=&limit=&sort=recent\|name` |
+| GET    | `/api/prizes/featured`         | 3 prêmios em destaque                                           |
+| GET    | `/api/prizes/type/:type`       | boneco \| arma \| acessorio                                     |
+| GET    | `/api/scores/:gameId?limit=10` | Top pontuações de um jogo (ranking)                             |
+| POST   | `/api/scores`                  | Registra pontuação: `{ game, player, points }`                  |
+| POST   | `/api/contact`                 | Mensagem de contato (rate limit: 10 envios / 10 min)            |
 
 ## Rodar localmente
 

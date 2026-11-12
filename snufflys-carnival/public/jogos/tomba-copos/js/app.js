@@ -31,7 +31,7 @@
     },
   });
 
-  /** Lista por jogada: acertos individuais (pela bola) e em cascata. */
+  /** Lista por jogada: copos derrubados pela bola e em cascata (todos pontuam). */
   function resumoJogadas(stats) {
     if (!stats || !stats.throws || !stats.throws.length) return '';
     const linhas = stats.throws
@@ -44,7 +44,7 @@
         return 'Jogada ' + t.n + ': ' + partes.join(' + ');
       });
     if (!linhas.length) return '';
-    const nota = stats.cascade > 0 ? ' <em>(copos em cascata não contam na pontuação)</em>' : '';
+    const nota = stats.cascade > 0 ? ' <em>(copos em cascata também pontuam)</em>' : '';
     return '<strong>Resumo das jogadas:</strong><br>' + linhas.join('<br>') + nota;
   }
 
