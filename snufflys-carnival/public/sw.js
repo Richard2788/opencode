@@ -3,7 +3,7 @@
    - Cache-first com atualização em background para estáticos
    - Network-first para a API
    - Fallback offline.html para navegações sem rede            */
-const CACHE = 'snuffly-v25';
+const CACHE = 'snuffly-v26';
 const ASSETS = [
   '/',
   '/index.html',
@@ -25,12 +25,11 @@ const ASSETS = [
   '/assets/audio/extreme fever music.mp3', // música do EXTREME FEVER (Cup Pong)
   // Jogo: Adivinha o Meu Número
   '/jogos/adivinha-numero/',
-  '/jogos/scores-comum.js',
-  // Jogo: Adivinha o Meu Número
-  '/jogos/adivinha-numero/',
   '/jogos/adivinha-numero/index.html',
   '/jogos/adivinha-numero/style.css',
   '/jogos/adivinha-numero/game.js',
+  // Ponte comum de pontuações (os 4 jogos)
+  '/jogos/scores-comum.js',
   // Jogo: Hack da Torre de Copos
   '/jogos/hack-torre-copos/',
   '/jogos/hack-torre-copos/index.html',
@@ -52,6 +51,7 @@ const ASSETS = [
   '/jogos/cup-pong/js/store.js',
   '/jogos/cup-pong/js/audio.js',
   '/jogos/cup-pong/js/render.js',
+  '/jogos/cup-pong/js/physics.js',
   '/jogos/cup-pong/js/game.js',
   '/jogos/cup-pong/js/ui.js',
   '/jogos/cup-pong/js/main.js',

@@ -276,11 +276,18 @@ export function initUI({ store, audio, game }) {
 
     syncStats();
 
-    // Ranking global (API do site) — modo contra CPU
+    // Ranking global (API do site) — CPU e duelo local (vencedor).
+    // Treino não vale ranking (arremessos infinitos = farm).
     const bridge = window.SnufflyScores;
-    if (bridge && mode === 'cpu') {
-      const points = playerWon ? 400 + result.hits * 30 + result.bestStreak * 30 : result.hits * 20;
-      bridge.submitScore(points);
+    if (bridge) {
+      if (mode === 'cpu' || mode === 'local') {
+        const points = playerWon
+          ? 400 + result.hits * 30 + result.bestStreak * 30
+          : result.hits * 20;
+        bridge.submitScore(points);
+      } else if (mode === 'practice') {
+        toast('Treino não vale ranking — jogue contra o CPU! 🏆');
+      }
     }
 
     setTimeout(() => setScreen('over'), 900);
